@@ -122,11 +122,9 @@ export default {
     async onJoin() {
       this.isLoading = true;
       const authToken = await this.getAuthTokenByRoomCode(this.formData.room);
-      console.log(authToken);
       const config = {
         userName: this.formData.name,
         authToken: authToken,
-        // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2NTM3MmM4ZjY4MTExZjZmZTRiNTdhN2QiLCJyb2xlIjoiaG9zdCIsInJvb21faWQiOiI2NTM3MmUyNDY5YjhhNzM5YmUwOGJmMTkiLCJ1c2VyX2lkIjoiZWExZTU4ZGUtY2E3NC00MWEyLTljZWItZTNiNDUxNGY4Y2E0IiwiZXhwIjoxNjk4MjIxNDMwLCJqdGkiOiJkMWU5ZmI1YS1hZjkyLTRhNWQtODg4OS1jNTY4ZjMzNTEyY2MiLCJpYXQiOjE2OTgxMzUwMzAsImlzcyI6IjY1MzcyYzhmNjgxMTFmNmZlNGI1N2E3YiIsIm5iZiI6MTY5ODEzNTAzMCwic3ViIjoiYXBpIn0.8w3XMeC7851-D2pVR-6mT0XKnrkluxX27y0_x5-hZx8", // client-side token generated from your token service
         settings: {
           // initial states
           isAudioMuted: true,

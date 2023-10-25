@@ -77,28 +77,54 @@
       </div>
     </div>
 
-    <div
-      class="mx-auto mt-10 flex items-center justify-center"
-      v-if="allPeers.length"
-    >
-      <button
-        class="bg-teal-800 text-white rounded-md p-3 block"
-        @click="toggleAudio"
+    <div class="mx-auto mt-10" v-if="allPeers.length">
+      <div class="flex items-center justify-center mb-4">
+        <button
+          class="bg-teal-800 text-white rounded-md p-3 block"
+          @click="toggleAudio"
+        >
+          {{ isAudioEnabled ? "Mute" : "Unmute" }} Microphone
+        </button>
+        <button
+          class="bg-indigo-400 text-white rounded-md p-3 block mx-5"
+          @click="toggleVideo"
+        >
+          {{ isVideoEnabled ? "Mute" : "Unmute" }} Camera
+        </button>
+        <button
+          class="bg-rose-800 text-white rounded-md p-3 block"
+          @click="leaveMeeting"
+        >
+          Leave Meeting
+        </button>
+      </div>
+      <div
+        class="w-[20rem] relative h-[25rem] flex flex-col bg-[#212121] m-auto rounded"
       >
-        {{ isAudioEnabled ? "Mute" : "Unmute" }} Microphone
-      </button>
-      <button
-        class="bg-indigo-400 text-white rounded-md p-3 block mx-5"
-        @click="toggleVideo"
-      >
-        {{ isVideoEnabled ? "Mute" : "Unmute" }} Camera
-      </button>
-      <button
-        class="bg-rose-800 text-white rounded-md p-3 block"
-        @click="leaveMeeting"
-      >
-        Leave Meeting
-      </button>
+        <div ref="messagescroll" class="flex-1 overflow-y-auto hide-scrollbar p-2">
+          <div class="mb-2" v-for="item in messageList" :key="item.id">
+            <div class="flex items-center justify-between text-[rgba(230,236,244,.9)]">
+              <div class="text-sm">{{ item.senderName }}</div>
+              <div class="text-xs">{{ dateTimeFormat(item.time) }}</div>
+            </div>
+            <div class="text-white text-base">{{item.message}}</div>
+          </div>
+        </div>
+        <div class="h-10 flex p-2 bg-[#3b3b3b]">
+          <input
+            type="text"
+            v-model="sendValue"
+            placeholder="Write something here"
+            class="h-full flex-1 outline-none bg-transparent text-white placeholder-[#565656] group-hover/item:placeholder-[#f1f1f1]"
+          />
+          <div
+            class="w-10 flex items-center justify-center cursor-pointer rounded bg-[#ccc]"
+            @click="onSendBroadcastMessage"
+          >
+            send
+          </div>
+        </div>
+      </div>
     </div>
     <div v-else>
       <p class="text-white text-center font-bold text-2xl">
@@ -108,6 +134,7 @@
   </main>
 </template>
 <script>
+import dayjs from "dayjs";
 import {
   selectPeers,
   HMSPeer,
@@ -116,6 +143,8 @@ import {
   selectIsLocalVideoEnabled,
   selectIsPeerAudioEnabled,
   selectIsPeerVideoEnabled,
+  selectHMSMessages,
+  selectBroadcastMessages,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
@@ -130,22 +159,42 @@ export default {
       MediaState: {
         isAudioEnabled: "isAudioEnabled",
         isVideoEnabled: "isVideoEnabled",
-      }
+      },
+
+      sendValue: "",
+      messageList: [],
     };
   },
-  computed: {
-
-  },
+  computed: {},
   mounted() {
     // this.onInit();
     hmsStore.subscribe(this.renderPeers, selectPeers);
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
+    hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
   },
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
   },
   methods: {
+    renderMessages(messages) {
+      this.messageList = messages;
+      if (this.allPeers.length) {
+
+        this.$nextTick(() => {
+          const El = this.$refs.messagescroll;
+          console.log(El)
+          El.scrollTo({top: El.scrollHeight, behavior: "smooth"});
+        })
+        console.log(messages);
+      }
+    },
+    async onSendBroadcastMessage() {
+      if (!this.sendValue) return;
+      await hmsActions.sendBroadcastMessage(this.sendValue);
+      this.sendValue = "";
+    },
+
     async toggleAudio() {
       const enabled = hmsStore.getState(selectIsLocalAudioEnabled);
       await hmsActions.setLocalAudioEnabled(!enabled);
@@ -188,12 +237,14 @@ export default {
     },
     onPeerAudioChange(isEnabled, peerId) {
       if (this.videoRefs[peerId]) {
-        this.remotePeerProps[peerId][this.MediaState.isAudioEnabled] = isEnabled;
+        this.remotePeerProps[peerId][this.MediaState.isAudioEnabled] =
+          isEnabled;
       }
     },
     onPeerVideoChange(isEnabled, peerId) {
       if (this.videoRefs[peerId]) {
-        this.remotePeerProps[peerId][this.MediaState.isVideoEnabled] = isEnabled;
+        this.remotePeerProps[peerId][this.MediaState.isVideoEnabled] =
+          isEnabled;
       }
     },
     onAudioChange(newAudioState) {
@@ -204,7 +255,14 @@ export default {
     },
     leaveMeeting() {
       hmsActions.leave();
-    }
+    },
+    dateTimeFormat(date) {
+      try {
+        return dayjs(date).format("h:m");
+      } catch (error) {
+        return "";
+      }
+    },
   },
 };
 </script>
