@@ -103,17 +103,28 @@
         >
           {{ isScreenShareEnabled ? "" : "Un" }} Screenshare
         </button>
+        <button
+          class="bg-yellow-800 text-white rounded-md p-3 block ml-5"
+          @click="toggleRTMPOrRecording"
+        >
+          {{ isRecording ? "" : "Un" }} Recording
+        </button>
       </div>
       <div
         class="w-[20rem] relative h-[25rem] flex flex-col bg-[#212121] m-auto rounded"
       >
-        <div ref="messagescroll" class="flex-1 overflow-y-auto hide-scrollbar p-2">
+        <div
+          ref="messagescroll"
+          class="flex-1 overflow-y-auto hide-scrollbar p-2"
+        >
           <div class="mb-2" v-for="item in messageList" :key="item.id">
-            <div class="flex items-center justify-between text-[rgba(230,236,244,.9)]">
+            <div
+              class="flex items-center justify-between text-[rgba(230,236,244,.9)]"
+            >
               <div class="text-sm">{{ item.senderName }}</div>
               <div class="text-xs">{{ dateTimeFormat(item.time) }}</div>
             </div>
-            <div class="text-white text-base">{{item.message}}</div>
+            <div class="text-white text-base">{{ item.message }}</div>
           </div>
         </div>
         <div class="h-10 flex p-2 bg-[#3b3b3b]">
@@ -152,6 +163,8 @@ import {
   selectHMSMessages,
   selectBroadcastMessages,
   selectIsLocalScreenShared,
+  selectRecordingState,
+  selectRTMPState,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
@@ -171,6 +184,7 @@ export default {
       sendValue: "",
       messageList: [],
       isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
+      isRecording: false,
     };
   },
   computed: {},
@@ -190,17 +204,34 @@ export default {
     renderMessages(messages) {
       this.messageList = messages;
       if (this.allPeers.length) {
-
         this.$nextTick(() => {
           const El = this.$refs.messagescroll;
-          El.scrollTo({top: El.scrollHeight, behavior: "smooth"});
-        })
+          El.scrollTo({ top: El.scrollHeight, behavior: "smooth" });
+        });
       }
     },
     async onSendBroadcastMessage() {
       if (!this.sendValue) return;
       await hmsActions.sendBroadcastMessage(this.sendValue);
       this.sendValue = "";
+    },
+
+    async toggleRTMPOrRecording() {
+      if (this.isRecording) {
+        await hmsActions.stopRTMPAndRecording();
+        this.isRecording = false;
+      } else {
+        const params = {
+          meetingURL:
+            "https://hongqiang12-videoconf-1038.app.100ms.live/meeting/ebx-uuco-utc",
+          rtmpURLs: [],
+          record: true,
+        };
+        await hmsActions.startRTMPOrRecording(params);
+        this.isRecording = true;
+      }
+      const recordingState = hmsStore.getState(selectRecordingState);
+      console.log(recordingState)
     },
 
     async toggleScreenShare() {
