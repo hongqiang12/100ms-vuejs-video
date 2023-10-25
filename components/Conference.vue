@@ -92,10 +92,16 @@
           {{ isVideoEnabled ? "Mute" : "Unmute" }} Camera
         </button>
         <button
-          class="bg-rose-800 text-white rounded-md p-3 block"
+          class="bg-rose-800 text-white rounded-md p-3 block mr-5"
           @click="leaveMeeting"
         >
           Leave Meeting
+        </button>
+        <button
+          class="bg-orange-800 text-white rounded-md p-3 block"
+          @click="toggleScreenShare"
+        >
+          {{ isScreenShareEnabled ? "" : "Un" }} Screenshare
         </button>
       </div>
       <div
@@ -145,6 +151,7 @@ import {
   selectIsPeerVideoEnabled,
   selectHMSMessages,
   selectBroadcastMessages,
+  selectIsLocalScreenShared,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
@@ -163,6 +170,7 @@ export default {
 
       sendValue: "",
       messageList: [],
+      isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
     };
   },
   computed: {},
@@ -171,6 +179,8 @@ export default {
     hmsStore.subscribe(this.renderPeers, selectPeers);
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
+    hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
+    hmsStore.subscribe(this.onScreenShareChange, selectIsLocalScreenShared);
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
   },
   beforeUnmount() {
@@ -183,16 +193,19 @@ export default {
 
         this.$nextTick(() => {
           const El = this.$refs.messagescroll;
-          console.log(El)
           El.scrollTo({top: El.scrollHeight, behavior: "smooth"});
         })
-        console.log(messages);
       }
     },
     async onSendBroadcastMessage() {
       if (!this.sendValue) return;
       await hmsActions.sendBroadcastMessage(this.sendValue);
       this.sendValue = "";
+    },
+
+    async toggleScreenShare() {
+      const enabled = hmsStore.getState(selectIsLocalScreenShared);
+      await hmsActions.setScreenShareEnabled(!enabled);
     },
 
     async toggleAudio() {
@@ -252,6 +265,9 @@ export default {
     },
     onVideoChange(newVideoState) {
       this.isVideoEnabled = newVideoState;
+    },
+    onScreenShareChange(newScreenShareState) {
+      this.isScreenShareEnabled = newScreenShareState;
     },
     leaveMeeting() {
       hmsActions.leave();
