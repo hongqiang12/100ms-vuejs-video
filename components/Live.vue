@@ -2,7 +2,11 @@
   <div
     class="rounded p-4 w-[25rem] max-h-[40rem] grid grid-cols-2 bg-[#212121] gap-4 overfllow-y-auto hidden-scrollbar"
   >
-    <div class="h-[12rem] bg-white rounded" v-for="(item, index) in dataList" :key="index">
+    <div
+      class="h-[12rem] bg-white rounded"
+      v-for="(item, index) in dataList"
+      :key="index"
+    >
       <video
         autoplay
         playsinline
@@ -19,6 +23,7 @@
   </div>
 </template>
 <script>
+// import { liveList } from "~/api/v1";
 import Hls from "hls.js";
 import { selectHLSState, HMSHLS } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -40,10 +45,10 @@ export default {
     hmsStore.subscribe(this.renderHLS, selectHLSState);
   },
   methods: {
-    renderHLS(hlsState) {
-      console.log(hmsStore.getState(selectHLSState))
+    async renderHLS(hlsState) {
+      // const list = await liveList();
       this.dataList = hlsState.variants;
-      console.log(this.dataList)
+      // console.log(this.dataList)
       hlsState.variants.map((r, index)=> {
         const hlsUrl = r.url;
         const video = this.videoRefs[index];

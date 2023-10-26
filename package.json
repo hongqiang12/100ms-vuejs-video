@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@100mslive/hms-video-store": "^0.10.17",
+    "axios": "^0.26.0",
     "core-js": "^3.25.3",
     "dayjs": "^1.11.10",
     "hls.js": "^1.4.12",

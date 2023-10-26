@@ -39,5 +39,16 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-  }
+  },
+  nitro: {
+    devProxy: {
+      "/api/v1": {
+        target: "https://api.100ms.live/v2",
+        changeOrigin: true,
+        headers: {
+          origin: "http://localhost:3000",
+        },
+      },
+    },
+  },
 }
