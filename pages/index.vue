@@ -2,6 +2,7 @@
   <div
     class="min-h-[100vh] bg-[#0e1115] flex flex-col justify-center py-12 sm:px-6 lg:px-8"
   >
+    <Header />
     <Conference v-if="isConnected" />
     <Join v-else />
   </div>

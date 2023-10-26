@@ -101,13 +101,19 @@
           class="bg-orange-800 text-white rounded-md p-3 block"
           @click="toggleScreenShare"
         >
-          {{ isScreenShareEnabled ? "" : "Un" }} Screenshare
+          {{ isScreenShareEnabled ? "Un" : "" }} Screenshare
         </button>
-        <button
+        <!-- <button
           class="bg-yellow-800 text-white rounded-md p-3 block ml-5"
           @click="toggleRTMPOrRecording"
         >
-          {{ isRecording ? "" : "Un" }} Recording
+          {{ isRecording ? "Un" : "" }} Recording
+        </button> -->
+        <button
+          class="bg-lime-800 text-white rounded-md p-3 block ml-5"
+          @click="toggleLove"
+        >
+          {{ isLove ? "Un" : "Go" }} Love
         </button>
       </div>
       <div
@@ -165,6 +171,7 @@ import {
   selectIsLocalScreenShared,
   selectRecordingState,
   selectRTMPState,
+  selectHLSState,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
@@ -185,6 +192,7 @@ export default {
       messageList: [],
       isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
       isRecording: false,
+      isLove: false,
     };
   },
   computed: {},
@@ -196,6 +204,7 @@ export default {
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
     hmsStore.subscribe(this.onScreenShareChange, selectIsLocalScreenShared);
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
+    hmsStore.subscribe(this.updateHLSState, selectHLSState);
   },
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
@@ -216,6 +225,35 @@ export default {
       this.sendValue = "";
     },
 
+    updateHLSState(hlsState) {
+      console.log(hlsState);
+      this.isLove = hlsState.running;
+    },
+
+    async toggleLove() {
+      if (this.isLove) {
+        await hmsActions.stopHLSStreaming();
+        this.isLove = false;
+      } else {
+        const params = {
+          variants: [
+            {
+              meetingURL:
+                "https://hongqiang12-videoconf-1038.app.100ms.live/meeting",
+              metadata: "landscape",
+            },
+          ],
+        };
+        params.recording = { singleFilePerLayer: true, hlsVod: false }; // to enable recording
+        try {
+          await hmsActions.startHLSStreaming(params);
+          this.isLove = true;
+        } catch (err) {
+          console.error("failed to start hls", err);
+        }
+      }
+    },
+
     async toggleRTMPOrRecording() {
       if (this.isRecording) {
         await hmsActions.stopRTMPAndRecording();
@@ -223,15 +261,15 @@ export default {
       } else {
         const params = {
           meetingURL:
-            "https://hongqiang12-videoconf-1038.app.100ms.live/meeting/ebx-uuco-utc",
+            "https://hongqiang12-videoconf-1038.app.100ms.live/meeting",
           rtmpURLs: [],
           record: true,
         };
         await hmsActions.startRTMPOrRecording(params);
         this.isRecording = true;
       }
-      const recordingState = hmsStore.getState(selectRecordingState);
-      console.log(recordingState)
+      // const recordingState = hmsStore.getState(selectRecordingState);
+      // console.log(recordingState)
     },
 
     async toggleScreenShare() {
