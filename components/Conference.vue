@@ -103,12 +103,12 @@
         >
           {{ isScreenShareEnabled ? "Un" : "" }} Screenshare
         </button>
-        <!-- <button
+        <button
           class="bg-yellow-800 text-white rounded-md p-3 block ml-5"
           @click="toggleRTMPOrRecording"
         >
           {{ isRecording ? "Un" : "" }} Recording
-        </button> -->
+        </button>
         <button
           class="bg-lime-800 text-white rounded-md p-3 block ml-5"
           @click="toggleLive"
@@ -205,6 +205,7 @@ export default {
     hmsStore.subscribe(this.onScreenShareChange, selectIsLocalScreenShared);
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
     hmsStore.subscribe(this.updateHLSState, selectHLSState);
+    hmsStore.subscribe(this.recordingState, selectRecordingState);
   },
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
@@ -228,6 +229,11 @@ export default {
     updateHLSState(hlsState) {
       console.log(hlsState);
       this.isLive = hlsState.running;
+    },
+
+    recordingState(recordingState) {
+      console.log(recordingState);
+      this.isRecording = recordingState.browser.running;
     },
 
     async toggleLive() {
@@ -263,13 +269,14 @@ export default {
           meetingURL:
             "https://hongqiang12-videoconf-1038.app.100ms.live/meeting",
           rtmpURLs: [],
+          // resolution: {width:720,height:400},
           record: true,
         };
         await hmsActions.startRTMPOrRecording(params);
         this.isRecording = true;
       }
-      // const recordingState = hmsStore.getState(selectRecordingState);
-      // console.log(recordingState)
+      const recordingState = hmsStore.getState(selectRecordingState);
+      console.log(recordingState)
     },
 
     async toggleScreenShare() {

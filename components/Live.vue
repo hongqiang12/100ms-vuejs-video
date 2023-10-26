@@ -24,6 +24,7 @@
 </template>
 <script>
 // import { liveList } from "~/api/v1";
+// import axios from "axios";
 import Hls from "hls.js";
 import { selectHLSState, HMSHLS } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -47,6 +48,7 @@ export default {
   methods: {
     async renderHLS(hlsState) {
       // const list = await liveList();
+      // console.log(list)
       this.dataList = hlsState.variants;
       // console.log(this.dataList)
       hlsState.variants.map((r, index)=> {
