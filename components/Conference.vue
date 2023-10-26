@@ -111,9 +111,9 @@
         </button> -->
         <button
           class="bg-lime-800 text-white rounded-md p-3 block ml-5"
-          @click="toggleLove"
+          @click="toggleLive"
         >
-          {{ isLove ? "Un" : "Go" }} Love
+          {{ isLive ? "Un" : "Go" }} Live
         </button>
       </div>
       <div
@@ -192,7 +192,7 @@ export default {
       messageList: [],
       isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
       isRecording: false,
-      isLove: false,
+      isLive: false,
     };
   },
   computed: {},
@@ -227,13 +227,13 @@ export default {
 
     updateHLSState(hlsState) {
       console.log(hlsState);
-      this.isLove = hlsState.running;
+      this.isLive = hlsState.running;
     },
 
-    async toggleLove() {
-      if (this.isLove) {
+    async toggleLive() {
+      if (this.isLive) {
         await hmsActions.stopHLSStreaming();
-        this.isLove = false;
+        this.isLive = false;
       } else {
         const params = {
           variants: [
@@ -247,7 +247,7 @@ export default {
         params.recording = { singleFilePerLayer: true, hlsVod: false }; // to enable recording
         try {
           await hmsActions.startHLSStreaming(params);
-          this.isLove = true;
+          this.isLive = true;
         } catch (err) {
           console.error("failed to start hls", err);
         }
