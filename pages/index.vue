@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-[100vh] bg-[#000000] flex flex-col justify-center"
+    class="min-h-[100vh] bg-[#000000]"
   >
     <!-- <Header /> -->
     <Conference v-if="isConnected" />

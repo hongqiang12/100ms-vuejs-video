@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-8 mx-auto w-full flex flex-col items-center justify-center">
+  <div class="pt-8 mx-auto w-full flex flex-col items-center justify-center">
     <div class="">
       <div
         class="w-[640px] h-[360px] rounded-xl overflow-hidden mb-4 bg-[#191B23]"
@@ -176,8 +176,8 @@ export default {
     return {
       isLoading: false,
       formData: {
-        name: "admin",
-        room: "ebx-uuco-utc",
+        name: "guest",
+        room: "cmk-ieal-qoe",
       },
       isAudioEnabled: hmsStore.getState(selectIsLocalAudioEnabled),
       isVideoEnabled: hmsStore.getState(selectIsLocalVideoEnabled),
@@ -203,12 +203,12 @@ export default {
         authToken: authToken, // client-side token generated from your token service
         settings: {
           // initial states
-          isAudioMuted: false,
+          isAudioMuted: true,
           isVideoMuted: false,
         },
         metaData: JSON.stringify({ city: "Winterfell", knowledge: "nothing" }),
         rememberDeviceSelection: true, // remember manual device change
-        captureNetworkQualityInPreview: true, // whether to measure network score in preview
+        captureNetworkQualityInPreview: false, // whether to measure network score in preview
       };
       await hmsActions.preview(config);
     },

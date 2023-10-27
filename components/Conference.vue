@@ -1,5 +1,5 @@
 <template>
-  <main class="relative mx-10 min-h-[100vh]">
+  <div class="relative h-[100vh] py-5 px-5">
     <div class="w-[600px] h-[400px]" v-if="isSomeoneScreenSharing">
       <video
         autoplay
@@ -9,8 +9,10 @@
       ></video>
     </div>
     <div class="flex gap-2">
-      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-3 my-6">
-        <div v-for="peer in allPeers" :key="peer.id" class="relative">
+      <div
+        class="flex-1 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-3 my-6"
+      >
+        <div v-for="peer in allPeers" :key="peer.id" class="relative h-[20rem]">
           <video
             autoplay
             :muted="peer.isLocal"
@@ -86,41 +88,88 @@
         </div>
       </div>
       <div
-        class="w-[20rem] relative h-[25rem] flex flex-col bg-[#212121] m-auto rounded"
+        v-if="isChat || isList"
+        class="w-[25rem] p-5 relative h-[50rem] flex flex-col bg-[#11131A] rounded"
       >
-        <div
-          ref="messagescroll"
-          class="flex-1 overflow-y-auto hide-scrollbar p-2"
-        >
-          <div class="mb-2" v-for="item in messageList" :key="item.id">
+        <div class="flex mb-5 items-center gap-3">
+          <div class="flex-1 p-1 flex text-[#8F9099] bg-[#191B23] rounded">
             <div
-              class="flex items-center justify-between text-[rgba(230,236,244,.9)]"
+              class="w-1/2 h-9 flex items-center justify-center cursor-pointer rounded"
+              @click="
+                isChat = true;
+                isList = false;
+              "
+              :class="isChat ? 'bg-[#2E3038] text-white font-bold' : ''"
             >
-              <div class="text-sm">{{ item.senderName }}</div>
-              <div class="text-xs">{{ dateTimeFormat(item.time) }}</div>
+              Chat
             </div>
-            <div class="text-white text-base">{{ item.message }}</div>
+            <div
+              class="w-1/2 h-9 flex items-center justify-center cursor-pointer rounded"
+              @click="
+                isList = true;
+                isChat = false;
+              "
+              :class="isList ? 'bg-[#2E3038] text-white font-bold' : ''"
+            >
+              Participants
+            </div>
+          </div>
+          <div
+            class="w-6 h-6 flex items-center justify-center hover:bg-white/60 rounded cursor-pointer"
+            @click="
+              isChat = false;
+              isList = false;
+            "
+          >
+            <i class="el-icon-close text-white"></i>
           </div>
         </div>
-        <div class="h-10 flex p-2 bg-[#3b3b3b]">
-          <input
-            type="text"
-            v-model="sendValue"
-            placeholder="Write something here"
-            class="h-full flex-1 outline-none bg-transparent text-white placeholder-[#565656] group-hover/item:placeholder-[#f1f1f1]"
-          />
+        <div v-if="isChat" class="flex-1 flex flex-col">
           <div
-            class="w-10 flex items-center justify-center cursor-pointer rounded bg-[#ccc]"
-            @click="onSendBroadcastMessage"
+            ref="messagescroll"
+            class="flex-1 overflow-y-auto hide-scrollbar p-2"
           >
-            send
+            <div class="mb-2" v-for="item in messageList" :key="item.id">
+              <div
+                class="flex items-center justify-between text-[rgba(230,236,244,.9)]"
+              >
+                <div class="text-sm">{{ item.senderName }}</div>
+                <div class="text-xs">{{ dateTimeFormat(item.time) }}</div>
+              </div>
+              <div class="text-white text-base">{{ item.message }}</div>
+            </div>
+          </div>
+          <div class="h-10 flex p-2 bg-[#191B23] rounded">
+            <input
+              type="text"
+              v-model="sendValue"
+              placeholder="send a message..."
+              class="h-full flex-1 outline-none bg-transparent text-white placeholder-[#565656] group-hover/item:placeholder-[#f1f1f1]"
+            />
+            <div
+              class="w-10 flex items-center justify-center cursor-pointer rounded bg-[#ccc]"
+              @click="onSendBroadcastMessage"
+            >
+              send
+            </div>
+          </div>
+        </div>
+        <div v-if="isList" class="flex-1 overflow-y-auto hide-scrollbar">
+          <div
+            class="border border-[#1D1F27] rounded p-4 mb-2 flex justify-between"
+            v-for="peer in allPeers"
+            :key="peer.id"
+          >
+            <div class="text-white">
+              {{ peer.isLocal ? `${peer.name} (You)` : peer.name }}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <div
-      class="absolute left-0 bottom-0 w-full h-20 my-2 flex items-center justify-between"
+      class="absolute left-0 bottom-0 w-full h-20 my-2 px-5 flex items-center justify-between"
       v-if="allPeers.length"
     >
       <!-- <div class="flex items-center justify-center mb-4">
@@ -234,14 +283,30 @@
           <i class="el-icon-switch-button"></i>
         </div>
       </div>
-      <div></div>
+      <div class="flex gap-3">
+        <div
+          class="rounded-md border border-[#272a31] text-white gap-2 px-3 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          @click="isChat = !isChat;isList = false;"
+          :class="isChat ? 'bg-[#293042]' : ''"
+        >
+          <i class="el-icon-chat-square"></i>
+        </div>
+        <div
+          class="rounded-md border border-[#272a31] text-white gap-2 px-3 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          @click="isList = !isList;isChat = false;"
+          :class="isList ? 'bg-[#293042]' : ''"
+        >
+          <i class="el-icon-s-custom"></i>
+          {{ allPeers.length }}
+        </div>
+      </div>
     </div>
     <div v-else>
       <p class="text-white text-center font-bold text-2xl">
         Hold On!, Loading Video Tiles...
       </p>
     </div>
-  </main>
+  </div>
 </template>
 <script>
 import { HMSVirtualBackgroundPlugin } from "@100mslive/hms-virtual-background";
@@ -262,7 +327,6 @@ import {
   selectScreenShareByPeerID,
   selectPeerSharingAudio,
   selectScreenShareAudioByPeerID,
-
   selectRecordingState,
   selectRTMPState,
   selectHLSState,
@@ -292,6 +356,9 @@ export default {
       virtualBackground: null,
       isVirtualBackgroundEnabled: false,
       isSomeoneScreenSharing: false,
+
+      isChat: false,
+      isList: false,
     };
   },
   computed: {},
@@ -314,6 +381,7 @@ export default {
   },
   methods: {
     renderMessages(messages) {
+      if (!this.isChat) return;
       this.messageList = messages;
       if (this.allPeers.length) {
         this.$nextTick(() => {
@@ -399,6 +467,7 @@ export default {
     renderPeers(peers) {
       this.allPeers = peers;
       peers.forEach((peer) => {
+        console.log(peer);
         if (this.videoRefs[peer.id]) {
           hmsActions.attachVideo(peer.videoTrack, this.videoRefs[peer.id]);
 
@@ -452,13 +521,15 @@ export default {
       if (state) {
         this.$nextTick(() => {
           const presenter = hmsStore.getState(selectPeerScreenSharing);
-          const screenshareVideoTrack = hmsStore.getState(selectScreenShareByPeerID(presenter.id));
-          
+          const screenshareVideoTrack = hmsStore.getState(
+            selectScreenShareByPeerID(presenter.id)
+          );
+
           const element = this.$refs.screenSharing;
           if (presenter) {
             hmsActions.attachVideo(screenshareVideoTrack.id, element);
           }
-        })
+        });
       }
     },
     leaveMeeting() {
@@ -475,7 +546,6 @@ export default {
       const isVirtualBackgroundEnabled = hmsStore.getState(
         selectIsLocalVideoPluginPresent(this.virtualBackground.getName())
       );
-      this.isVirtualBackgroundEnabled = isVirtualBackgroundEnabled;
       try {
         if (!isVirtualBackgroundEnabled) {
           // Recommended value
