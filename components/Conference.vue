@@ -1,6 +1,14 @@
 <template>
-  <main class="relative mx-10 min-h-[80vh]">
-    <div class="flex">
+  <main class="relative mx-10 min-h-[100vh]">
+    <div class="w-[600px] h-[400px]" v-if="isSomeoneScreenSharing">
+      <video
+        autoplay
+        playsinline
+        class="h-full w-full object-cover"
+        ref="screenSharing"
+      ></video>
+    </div>
+    <div class="flex gap-2">
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-3 my-6">
         <div v-for="peer in allPeers" :key="peer.id" class="relative">
           <video
@@ -213,6 +221,13 @@
       </div>
       <div class="flex gap-3">
         <div
+          class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          :class="isScreenShareEnabled ? 'bg-[#293042]' : ''"
+          @click="toggleScreenShare"
+        >
+          <i class="el-icon-s-platform"></i>
+        </div>
+        <div
           class="rounded-md text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden bg-[rgb(199,78,91)] hover:bg-[rgb(255,178,182)]"
           @click="leaveMeeting"
         >
@@ -242,6 +257,12 @@ import {
   selectHMSMessages,
   selectBroadcastMessages,
   selectIsLocalScreenShared,
+  selectPeerScreenSharing,
+  selectIsSomeoneScreenSharing,
+  selectScreenShareByPeerID,
+  selectPeerSharingAudio,
+  selectScreenShareAudioByPeerID,
+
   selectRecordingState,
   selectRTMPState,
   selectHLSState,
@@ -270,6 +291,7 @@ export default {
 
       virtualBackground: null,
       isVirtualBackgroundEnabled: false,
+      isSomeoneScreenSharing: false,
     };
   },
   computed: {},
@@ -281,6 +303,8 @@ export default {
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
     hmsStore.subscribe(this.onScreenShareChange, selectIsLocalScreenShared);
+    hmsStore.subscribe(this.onIsScreenShare, selectIsSomeoneScreenSharing);
+
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
     hmsStore.subscribe(this.updateHLSState, selectHLSState);
     hmsStore.subscribe(this.recordingState, selectRecordingState);
@@ -305,12 +329,12 @@ export default {
     },
 
     updateHLSState(hlsState) {
-      console.log(hlsState);
+      // console.log(hlsState);
       this.isLive = hlsState.running;
     },
 
     recordingState(recordingState) {
-      console.log(recordingState);
+      // console.log(recordingState);
       this.isRecording = recordingState.browser.running;
     },
 
@@ -354,7 +378,7 @@ export default {
         this.isRecording = true;
       }
       const recordingState = hmsStore.getState(selectRecordingState);
-      console.log(recordingState);
+      // console.log(recordingState);
     },
 
     async toggleScreenShare() {
@@ -422,6 +446,20 @@ export default {
     },
     onScreenShareChange(newScreenShareState) {
       this.isScreenShareEnabled = newScreenShareState;
+    },
+    onIsScreenShare(state) {
+      this.isSomeoneScreenSharing = state;
+      if (state) {
+        this.$nextTick(() => {
+          const presenter = hmsStore.getState(selectPeerScreenSharing);
+          const screenshareVideoTrack = hmsStore.getState(selectScreenShareByPeerID(presenter.id));
+          
+          const element = this.$refs.screenSharing;
+          if (presenter) {
+            hmsActions.attachVideo(screenshareVideoTrack.id, element);
+          }
+        })
+      }
     },
     leaveMeeting() {
       hmsActions.leave();
