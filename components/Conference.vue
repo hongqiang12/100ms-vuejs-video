@@ -201,7 +201,6 @@ export default {
     hmsStore.subscribe(this.renderPeers, selectPeers);
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
-    hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
     hmsStore.subscribe(this.onScreenShareChange, selectIsLocalScreenShared);
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
     hmsStore.subscribe(this.updateHLSState, selectHLSState);

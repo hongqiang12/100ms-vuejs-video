@@ -1,6 +1,64 @@
 <template>
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-10 px-5 shadow sm:rounded-lg sm:px-10">
+  <div class="mt-8 mx-auto w-full flex flex-col items-center justify-center">
+    <div class="">
+      <div
+        class="w-[640px] h-[360px] rounded-xl overflow-hidden mb-4 bg-[#191B23]"
+      >
+        <video
+          autoplay
+          playsinline
+          class="h-full w-full object-cover"
+          ref="video"
+        ></video>
+      </div>
+      <div class="my-4 flex gap-3">
+        <div
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+          :class="!isAudioEnabled ? 'bg-[#293042]' : ''"
+        >
+          <div
+            class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleAudio"
+          >
+            <i
+              :class="
+                isAudioEnabled
+                  ? 'el-icon-microphone'
+                  : 'el-icon-turn-off-microphone'
+              "
+            ></i>
+          </div>
+          <div
+            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+          >
+            <i class="el-icon-more rotate-90"></i>
+          </div>
+        </div>
+        <div
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+          :class="!isVideoEnabled ? 'bg-[#293042]' : ''"
+        >
+          <div
+            class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleVideo"
+          >
+            <i
+              :class="
+                isVideoEnabled
+                  ? 'el-icon-video-camera-solid'
+                  : 'el-icon-video-camera'
+              "
+            ></i>
+          </div>
+          <div
+            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+          >
+            <i class="el-icon-more rotate-90"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white w-[448px] py-10 px-5 shadow sm:rounded-lg sm:px-10">
       <div class="space-y-6">
         <div>
           <label for="name" class="block text-sm font-2xl text-gray-700">
@@ -87,6 +145,11 @@
 </template>
 
 <script>
+import {
+  selectLocalPeer,
+  selectIsLocalAudioEnabled,
+  selectIsLocalVideoEnabled,
+} from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
   name: "Join",
@@ -94,30 +157,42 @@ export default {
     return {
       isLoading: false,
       formData: {
-        name: "",
-        room: "",
+        name: "admin",
+        room: "ebx-uuco-utc",
       },
+      isAudioEnabled: hmsStore.getState(selectIsLocalAudioEnabled),
+      isVideoEnabled: hmsStore.getState(selectIsLocalVideoEnabled),
     };
   },
   mounted() {
-    // this.onInit();
+    this.onInit();
+    hmsStore.subscribe(this.renderPeers, selectLocalPeer);
+    hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
+    hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
   },
   methods: {
     async onInit() {
+      const authToken = await this.getAuthTokenByRoomCode(this.formData.room);
       const config = {
-        userName: "Daniel",
-        authToken:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoiYXBwIiwiYXBwX2RhdGEiOm51bGwsImFjY2Vzc19rZXkiOiI2NTM3MmM4ZjY4MTExZjZmZTRiNTdhN2QiLCJyb2xlIjoiaG9zdCIsInJvb21faWQiOiI2NTM3MmUyNDY5YjhhNzM5YmUwOGJmMTkiLCJ1c2VyX2lkIjoiZWExZTU4ZGUtY2E3NC00MWEyLTljZWItZTNiNDUxNGY4Y2E0IiwiZXhwIjoxNjk4MjIxNDMwLCJqdGkiOiJkMWU5ZmI1YS1hZjkyLTRhNWQtODg4OS1jNTY4ZjMzNTEyY2MiLCJpYXQiOjE2OTgxMzUwMzAsImlzcyI6IjY1MzcyYzhmNjgxMTFmNmZlNGI1N2E3YiIsIm5iZiI6MTY5ODEzNTAzMCwic3ViIjoiYXBpIn0.8w3XMeC7851-D2pVR-6mT0XKnrkluxX27y0_x5-hZx8", // client-side token generated from your token service
+        userName: this.formData.name,
+        authToken: authToken, // client-side token generated from your token service
         settings: {
           // initial states
-          isAudioMuted: true,
+          isAudioMuted: false,
           isVideoMuted: false,
         },
         metaData: JSON.stringify({ city: "Winterfell", knowledge: "nothing" }),
         rememberDeviceSelection: true, // remember manual device change
-        captureNetworkQualityInPreview: false, // whether to measure network score in preview
+        captureNetworkQualityInPreview: true, // whether to measure network score in preview
       };
       await hmsActions.preview(config);
+    },
+    renderPeers(peer) {
+      console.log(peer);
+      const element = this.$refs.video;
+      if (peer) {
+        hmsActions.attachVideo(peer.videoTrack, element);
+      }
     },
     async onJoin() {
       this.isLoading = true;
@@ -127,8 +202,8 @@ export default {
         authToken: authToken,
         settings: {
           // initial states
-          isAudioMuted: true,
-          isVideoMuted: false,
+          isAudioMuted: false,
+          isVideoMuted: true,
         },
         metaData: JSON.stringify({ city: "Winterfell", knowledge: "nothing" }),
         rememberDeviceSelection: true, // remember manual device change
@@ -138,7 +213,21 @@ export default {
       this.isLoading = false;
     },
     async getAuthTokenByRoomCode(roomCode) {
-      return await hmsActions.getAuthTokenByRoomCode({roomCode});
+      return await hmsActions.getAuthTokenByRoomCode({ roomCode });
+    },
+    onAudioChange(newAudioState) {
+      this.isAudioEnabled = newAudioState;
+    },
+    onVideoChange(newVideoState) {
+      this.isVideoEnabled = newVideoState;
+    },
+    async toggleAudio() {
+      const enabled = hmsStore.getState(selectIsLocalAudioEnabled);
+      await hmsActions.setLocalAudioEnabled(!enabled);
+    },
+    async toggleVideo() {
+      const enabled = hmsStore.getState(selectIsLocalVideoEnabled);
+      await hmsActions.setLocalVideoEnabled(!enabled);
     },
   },
 };
