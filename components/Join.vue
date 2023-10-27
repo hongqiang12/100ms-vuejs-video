@@ -56,6 +56,18 @@
             <i class="el-icon-more rotate-90"></i>
           </div>
         </div>
+
+        <div
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+          :class="isVirtualBackgroundEnabled ? 'bg-[#293042]' : ''"
+        >
+          <div
+            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleVB"
+          >
+            <i class="el-icon-picture"></i>
+          </div>
+        </div>
       </div>
     </div>
     <div class="bg-white w-[448px] py-10 px-5 shadow sm:rounded-lg sm:px-10">
@@ -146,9 +158,16 @@
 
 <script>
 import {
+  HMSVBPlugin,
+  HMSVirtualBackgroundPlugin,
+  HMSVirtualBackgroundTypes,
+} from "@100mslive/hms-virtual-background";
+
+import {
   selectLocalPeer,
   selectIsLocalAudioEnabled,
   selectIsLocalVideoEnabled,
+  selectIsLocalVideoPluginPresent,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
@@ -162,10 +181,16 @@ export default {
       },
       isAudioEnabled: hmsStore.getState(selectIsLocalAudioEnabled),
       isVideoEnabled: hmsStore.getState(selectIsLocalVideoEnabled),
+      virtualBackground: null,
+      isVirtualBackgroundEnabled: false,
     };
   },
   mounted() {
     this.onInit();
+    this.virtualBackground = new HMSVirtualBackgroundPlugin('blur');
+    console.log(this.virtualBackground);
+    this.virtualBackground.init();
+    // this.changeBackground();
     hmsStore.subscribe(this.renderPeers, selectLocalPeer);
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
     hmsStore.subscribe(this.onVideoChange, selectIsLocalVideoEnabled);
@@ -188,7 +213,6 @@ export default {
       await hmsActions.preview(config);
     },
     renderPeers(peer) {
-      console.log(peer);
       const element = this.$refs.video;
       if (peer) {
         hmsActions.attachVideo(peer.videoTrack, element);
@@ -200,11 +224,6 @@ export default {
       const config = {
         userName: this.formData.name,
         authToken: authToken,
-        settings: {
-          // initial states
-          isAudioMuted: false,
-          isVideoMuted: true,
-        },
         metaData: JSON.stringify({ city: "Winterfell", knowledge: "nothing" }),
         rememberDeviceSelection: true, // remember manual device change
         captureNetworkQualityInPreview: false, // whether to measure network score in preview
@@ -228,6 +247,46 @@ export default {
     async toggleVideo() {
       const enabled = hmsStore.getState(selectIsLocalVideoEnabled);
       await hmsActions.setLocalVideoEnabled(!enabled);
+    },
+
+    // hms-virtual-background
+    async changeBackground() {
+      if (!this.virtualBackground.checkSupport()) return;
+      // for blurring the background
+      // await this.virtualBackground.current.setBackground(
+      //   HMSVirtualBackgroundTypes.BLUR,
+      //   HMSVirtualBackgroundTypes.BLUR
+      // );
+      // for setting an image
+      const image = document.createElement("img");
+      image.src = "./Thumbnail.png";
+      await this.virtualBackground.setBackground(
+        image,
+        HMSVirtualBackgroundTypes.IMAGE
+      );
+    },
+    async toggleVB() {
+      const isVirtualBackgroundEnabled = hmsStore.getState(
+        selectIsLocalVideoPluginPresent(this.virtualBackground.getName())
+      );
+      this.isVirtualBackgroundEnabled = isVirtualBackgroundEnabled;
+      try {
+        if (!isVirtualBackgroundEnabled) {
+          // Recommended value
+          const pluginFrameRate = 15;
+          // add virtual background
+          await hmsActions.addPluginToVideoTrack(
+            this.virtualBackground,
+            pluginFrameRate
+          );
+        } else {
+          // remove virtual background
+          await hmsActions.removePluginFromVideoTrack(this.virtualBackground);
+        }
+        this.isVirtualBackgroundEnabled = !isVirtualBackgroundEnabled;
+      } catch (error) {
+        console.log("failed to set virtual background -", error);
+      }
     },
   },
 };
