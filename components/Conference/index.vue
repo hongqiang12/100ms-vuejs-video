@@ -1,12 +1,15 @@
 <template>
-  <div class="w-full h-full flex flex-col bg-[#05070e]">
+  <div
+    class="w-full h-full flex flex-col bg-[#05070e]"
+    @click="recordPopover = false"
+  >
     <div class="h-16 flex items-center justify-between px-6">
       <img
         src="https://aladia.it/wp-content/uploads/2022/12/cropped-Logo_Aladia-copia.png"
         class="max-h-10"
         alt=""
       />
-      <el-popover
+      <!-- <el-popover
         width="256"
         :value="recordPopover"
         placement="bottom-end"
@@ -19,29 +22,43 @@
             Are you sure you want to end the recording?
           </p>
           <div class="flex justify-end">
-            <el-button type="danger">Stop</el-button>
-          </div>
-        </div>
-
-        <div
-          slot="reference"
-          class="border border-[#2e3038] text-[#f0f0fb] bg-[#2e3038] text-base rounded-lg font-[500] flex items-center justify-center gap-2 py-2 px-4 cursor-pointer"
-          :class="isRecording ? 'border-[#C74E5B] hover:border-[#FFB2B6]' : ''"
-          @click="recordPopover = true"
-        >
-          <SvgLoading v-if="recordLoading" />
-          <SvgRecordStart v-else />
-          {{ getRecordingName }}
-        </div>
-        <!-- <div class="w-[256px] p-3 rounded-xl bg-[#0B0E15] absolute right-6 top-16 transition-all" v-if="recordStopShow">
-          <p class="text-base font-[500] text-[#c5c6d1]">
-            Are you sure you want to end the recording?
-          </p>
-          <div class="flex justify-end">
-            <el-button type="danger">Stop</el-button>
+            <el-button type="danger" @click="onStopRecord">Stop</el-button>
           </div>
         </div> -->
-      </el-popover>
+
+      <div
+        slot="reference"
+        class="border border-[#2e3038] text-[#f0f0fb] text-base rounded-lg font-[500] flex items-center justify-center gap-2 py-2 px-4 cursor-pointer"
+        :class="
+          isRecording
+            ? 'border-[#C74E5B] hover:border-[#FFB2B6]'
+            : 'bg-[#2e3038]'
+        "
+        @click.stop="onRecord"
+      >
+        <SvgLoading v-if="recordLoading" />
+        <SvgRecordStart v-else />
+        {{ getRecordingName }}
+      </div>
+      <div
+        class="w-[256px] p-3 rounded-xl bg-[#0B0E15] absolute z-10 right-6 top-16 transition-all"
+        v-if="recordPopover"
+        @click.stop
+      >
+        <p class="text-base font-[500] text-[#c5c6d1]">
+          Are you sure you want to end the recording?
+        </p>
+        <div class="flex justify-end">
+          <el-button
+            type="danger"
+            class="cursor-pointer"
+            @click.stop="onStopRecord"
+          >
+            Stop
+          </el-button>
+        </div>
+      </div>
+      <!-- </el-popover> -->
     </div>
     <div class="flex-1 px-6">
       <div class="relative w-full h-full flex gap-2">
@@ -190,7 +207,6 @@
                   <SvgUserClose />
                   Remove Participant
                 </div>
-                
 
                 <div
                   v-if="peer.isLocal"
@@ -479,7 +495,6 @@ export default {
       sendValue: "",
       messageList: [],
       isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
-      isRecording: false,
       isLive: false,
 
       virtualBackground: null,
@@ -582,8 +597,8 @@ export default {
     },
 
     recordingState(recordingState) {
-      // console.log(recordingState);
       this.isRecording = recordingState.browser.running;
+      this.recordLoading = false;
     },
 
     async toggleLive() {
@@ -782,6 +797,29 @@ export default {
     onChangeVolume(value, peer) {
       hmsActions.setVolume(value, peer.audioTrack);
       this.$set(this.volumeObj, peer.id, value);
+    },
+    async onRecord() {
+      if (!this.isRecording) {
+        this.recordPopover = false;
+        this.recordLoading = true;
+
+        const params = {
+          meetingURL:
+            "https://hongqiang12-videoconf-1038.app.100ms.live/meeting",
+          rtmpURLs: [],
+          // resolution: {width:720,height:400},
+          record: true,
+        };
+        await hmsActions.startRTMPOrRecording(params);
+        // this.isRecording = true;
+      } else {
+        this.recordPopover = true;
+      }
+    },
+    async onStopRecord() {
+      await hmsActions.stopRTMPAndRecording();
+      // this.isRecording = false;
+      this.recordPopover = false;
     },
   },
 };
