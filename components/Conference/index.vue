@@ -130,19 +130,19 @@
               <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
                 <div
                   v-if="!peer.isLocal"
-                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="onVideoMute(peer)"
                 >
                   <div
                     v-if="
                       remotePeerProps?.[peer.id]?.[MediaState.isVideoEnabled]
                     "
-                    class="flex gap-2"
+                    class="flex items-center gap-2"
                   >
                     <SvgVideo />
                     Mute
                   </div>
-                  <div v-else class="flex gap-2">
+                  <div v-else class="flex items-center gap-2">
                     <SvgUnVideo />
                     Request Unmute
                   </div>
@@ -150,36 +150,51 @@
 
                 <div
                   v-if="!peer.isLocal"
-                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="onAudioMute(peer)"
                 >
                   <div
                     v-if="
                       remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled]
                     "
-                    class="flex gap-2"
+                    class="flex items-center gap-2"
                   >
                     <SvgAudio />
                     Mute
                   </div>
-                  <div v-else class="flex gap-2">
+                  <div v-else class="flex items-center gap-2">
                     <SvgUnAudio />
                     Request Unmute
                   </div>
                 </div>
+                <div
+                  v-if="!peer.isLocal"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  @click="onRomove(peer)"
+                >
+                  <SvgSpeaker />
+                  Volume ({{ volumeObj[peer.id] }})
+                </div>
+                <div class="px-4 pb-2" v-if="!peer.isLocal">
+                  <el-slider
+                    v-model="volumeObj[peer.id]"
+                    @change="onChangeVolume($event, peer)"
+                  ></el-slider>
+                </div>
 
                 <div
                   v-if="!peer.isLocal"
-                  class="bg-[#11131b] font-semibold text-[#C74E5B] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  class="bg-[#11131b] font-semibold text-[#C74E5B] text-sm p-2 flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="onRomove(peer)"
                 >
                   <SvgUserClose />
                   Remove Participant
                 </div>
+                
 
                 <div
                   v-if="peer.isLocal"
-                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="nameVisible = true"
                 >
                   <SvgPen />
@@ -459,6 +474,7 @@ export default {
         audioLevel: "audioLevel",
       },
       audioLevelObj: {},
+      volumeObj: {},
 
       sendValue: "",
       messageList: [],
@@ -663,6 +679,7 @@ export default {
               this.name = peer.name;
             }
 
+            this.$set(this.volumeObj, peer.id, 100);
             this.$set(this.audioLevelObj, peer.id, 0);
             hmsStore.subscribe(
               (audioLevel) => this.onPeerAudioLevelChange(audioLevel, peer.id),
@@ -759,9 +776,13 @@ export default {
       }
     },
     onRomove(peer) {
-      const reason = 'Good Bye';
+      const reason = "Good Bye";
       hmsActions.removePeer(peer.id, reason);
-    }
+    },
+    onChangeVolume(value, peer) {
+      hmsActions.setVolume(value, peer.audioTrack);
+      this.$set(this.volumeObj, peer.id, value);
+    },
   },
 };
 </script>
