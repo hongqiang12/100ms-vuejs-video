@@ -3,6 +3,7 @@
     class="h-[100vh] bg-[#000000]"
   >
     <!-- <Header /> -->
+    <!-- <Conference /> -->
     <Conference v-if="isConnected" />
     <Join v-else />
   </div>

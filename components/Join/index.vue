@@ -7,7 +7,7 @@
       <video
         autoplay
         playsinline
-        class="h-full w-full object-cover scale-x-[-1]"
+        class="h-full w-full object-contain scale-x-[-1]"
         ref="video"
       ></video>
       <div
@@ -221,7 +221,7 @@
             <video
               autoplay
               playsinline
-              class="h-full w-full object-cover scale-x-[-1] rounded-xl"
+              class="h-full w-full object-contain scale-x-[-1] rounded-xl"
               ref="dialogVideo"
             ></video>
           </div>
