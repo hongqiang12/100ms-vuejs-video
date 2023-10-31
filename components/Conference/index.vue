@@ -52,90 +52,57 @@
           <div
             v-for="peer in allPeers"
             :key="peer.id"
-            class="relative flex items-center justify-center bg-[#0B0E15] rounded-xl"
+            class="relative flex-1 max-h-full flex items-center justify-center bg-[#0B0E15] rounded-xl"
           >
             <video
               autoplay
               :muted="peer.isLocal"
               playsinline
-              class="h-full w-full object-contain scale-x-[-1] bg-[#0B0E15] rounded-xl"
+              class="object-contain flex items-center justify-center scale-x-[-1] bg-[#0B0E15] rounded-xl"
               :ref="
                 (el) => {
                   if (el) videoRefs[peer.id] = el;
                 }
               "
             ></video>
-            <!-- <div
+            <div
               class="absolute right-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center"
             >
-              <div class="flex items-center gap-1" v-if="isAudioEnabled">
+              <div
+                class="flex items-center gap-1"
+                v-if="
+                  (peer.isLocal && isAudioEnabled) ||
+                  (!peer.isLocal &&
+                    remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled])
+                "
+              >
                 <div
                   class="w-1 h-1 rounded transition-all duration-500 bg-white"
-                  :style="{ height: `${(7 / 100) * audioLevel + 4}px` }"
+                  :style="{
+                    height: `${(7 / 100) * audioLevelObj[peer.id] + 4}px`,
+                  }"
                 ></div>
                 <div
                   class="w-1 h-1 rounded transition-all bg-white"
-                  :style="{ height: `${(12 / 100) * audioLevel + 4}px` }"
+                  :style="{
+                    height: `${(12 / 100) * audioLevelObj[peer.id] + 4}px`,
+                  }"
                 ></div>
                 <div
                   class="w-1 h-1 rounded transition-all duration-500 bg-white"
-                  :style="{ height: `${(7 / 100) * audioLevel + 4}px` }"
+                  :style="{
+                    height: `${(7 / 100) * audioLevelObj[peer.id] + 4}px`,
+                  }"
                 ></div>
               </div>
               <i
                 v-else
                 class="text-xl el-icon-turn-off-microphone text-white"
               ></i>
-            </div> -->
+            </div>
             <p
-              class="flex justify-center items-center py-1 px-2 text-sm font-medium bg-black bg-opacity-80 text-white pointer-events-none absolute bottom-0 left-0"
+              class="flex justify-center items-center py-1 px-2 text-sm font-medium bg-black bg-opacity-80 text-white pointer-events-none absolute left-1 bottom-1 rounded-lg left-0"
             >
-              <span
-                class="inline-block w-6"
-                v-show="
-                  (peer.isLocal && isAudioEnabled) ||
-                  (!peer.isLocal &&
-                    remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled])
-                "
-              >
-                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    stroke="#FFF"
-                    fill="#FFF"
-                    d="m23 14v3a7 7 0 0 1 -14 0v-3h-2v3a9 9 0 0 0 8 8.94v2.06h-4v2h10v-2h-4v-2.06a9 9 0 0 0 8-8.94v-3z"
-                  />
-                  <path
-                    stroke="#FFF"
-                    fill="#FFF"
-                    d="m16 22a5 5 0 0 0 5-5v-10a5 5 0 0 0 -10 0v10a5 5 0 0 0 5 5z"
-                  />
-                  <path d="m0 0h32v32h-32z" fill="none" />
-                </svg>
-              </span>
-              <span
-                class="inline-block w-6"
-                v-show="
-                  (peer.isLocal && !isAudioEnabled) ||
-                  (!peer.isLocal &&
-                    !remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled])
-                "
-              >
-                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    fill="#FFF"
-                    d="m23 17a7 7 0 0 1 -11.73 5.14l1.42-1.41a5 5 0 0 0 8.31-3.73v-4.58l9-9-1.41-1.42-26.59 26.59 1.41 1.41 6.44-6.44a8.91 8.91 0 0 0 5.15 2.38v2.06h-4v2h10v-2h-4v-2.06a9 9 0 0 0 8-8.94v-3h-2z"
-                  />
-                  <path
-                    fill="#FFF"
-                    d="m9 17.32c0-.11 0-.21 0-.32v-3h-2v3a9 9 0 0 0 .25 2.09z"
-                  />
-                  <path
-                    fill="#FFF"
-                    d="m20.76 5.58a5 5 0 0 0 -9.76 1.42v8.34z"
-                  />
-                  <path d="m0 0h32v32h-32z" fill="none" />
-                </svg>
-              </span>
               <span class="inline-block">
                 {{ peer.isLocal ? `You (${peer.name})` : peer.name }}</span
               >
@@ -151,6 +118,31 @@
             >
               Camera Off
             </p>
+
+            <el-popover
+              width="240"
+              :visible-arrow="false"
+              placement="top-end"
+              popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
+              trigger="click"
+            >
+              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+                <div
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  @click="nameVisible = true"
+                >
+                  <SvgPen />
+                  Change Name
+                </div>
+              </div>
+
+              <div
+                class="absolute right-1 bottom-1 bg-[#05070e]/60 text-white w-7 h-7 rounded-3xl flex items-center justify-center cursor-pointer"
+                slot="reference"
+              >
+                <i class="el-icon-more rotate-90 text-lg"></i>
+              </div>
+            </el-popover>
           </div>
         </div>
         <div
@@ -332,6 +324,34 @@
         </div>
       </div>
     </div>
+    <el-dialog
+      :visible.sync="nameVisible"
+      width="400px"
+      :show-close="false"
+      custom-class="rounded-xl !bg-transparent"
+    >
+      <div class="bg-[#11131b] p-5 rounded-xl">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-white text-base">Change Name</div>
+          <i class="el-icon-close text-2xl font-semibold hover:opacity-80" @click="nameVisible = false"></i>
+        </div>
+        <div class="text-white/80 mb-6 text-sm">Your name will be visible to other participants in the session.</div>
+        <input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="Enter name"
+            required
+            v-model="name"
+            class="appearance-none border border-transparent bg-[#191B23] text-[#f0f0fb] w-full py-2 px-3 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-[#538eff] text-base"
+          />
+          <div class="flex gap-4 mt-4">
+            <!-- <div class="">Change</div> -->
+            <el-button plain class="flex-1" @click="nameVisible = false">Cancel</el-button>
+            <el-button type="primary" class="flex-1" @click="onChangeName">Change</el-button>
+          </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -357,6 +377,7 @@ import {
   selectRTMPState,
   selectHLSState,
   selectIsLocalVideoPluginPresent,
+  selectPeerAudioByID,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 import { watch } from "vue";
@@ -375,7 +396,9 @@ export default {
       MediaState: {
         isAudioEnabled: "isAudioEnabled",
         isVideoEnabled: "isVideoEnabled",
+        audioLevel: "audioLevel",
       },
+      audioLevelObj: {},
 
       sendValue: "",
       messageList: [],
@@ -391,6 +414,9 @@ export default {
       isList: false,
 
       domStyle: {},
+
+      nameVisible: false,
+      name: "",
     };
   },
   computed: {
@@ -404,31 +430,31 @@ export default {
         ? "Stop Recording"
         : "Start Recording";
     },
-    videoStyle() {
-      const Len = this.allPeers.length;
-      let style = {};
-      switch (Len) {
-        case 1:
-          style = {
-            width: this.domStyle.width + "px",
-            height: this.domStyle.height + "px",
-          };
-          break;
-        case 2:
-          style = {
-            width: this.domStyle.width / 2 - 8 + "px",
-            height: this.domStyle.width / 2 - 8 + "px",
-          };
-          break;
-        default:
-          style = {
-            width: this.domStyle.width / 2 - 8 + "px",
-            height: (this.domStyle.width / 2 - 8) / Math.round(Len / 2) + "px",
-          };
-          break;
-      }
-      return style;
-    },
+    // videoStyle() {
+    //   const Len = this.allPeers.length;
+    //   let style = {};
+    //   switch (Len) {
+    //     case 1:
+    //       style = {
+    //         width: this.domStyle.width + "px",
+    //         height: this.domStyle.height + "px",
+    //       };
+    //       break;
+    //     case 2:
+    //       style = {
+    //         width: this.domStyle.width / 2 - 8 + "px",
+    //         height: this.domStyle.width / 2 - 8 + "px",
+    //       };
+    //       break;
+    //     default:
+    //       style = {
+    //         width: this.domStyle.width / 2 - 8 + "px",
+    //         height: (this.domStyle.width / 2 - 8) / Math.round(Len / 2) + "px",
+    //       };
+    //       break;
+    //   }
+    //   return style;
+    // },
   },
   mounted() {
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
@@ -443,12 +469,12 @@ export default {
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
     hmsStore.subscribe(this.updateHLSState, selectHLSState);
     hmsStore.subscribe(this.recordingState, selectRecordingState);
-    this.onResize();
-    window.addEventListener("resize", this.onResize);
+    // this.onResize();
+    // window.addEventListener("resize", this.onResize);
   },
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
-    window.removeEventListener("resize", this.onResize);
+    // window.removeEventListener("resize", this.onResize);
   },
   methods: {
     onResize() {
@@ -540,38 +566,50 @@ export default {
       const enabled = hmsStore.getState(selectIsLocalVideoEnabled);
       await hmsActions.setLocalVideoEnabled(!enabled);
       // rendering again is required for the local video to show after turning off
-      this.renderPeers(hmsStore.getState(selectPeers));
+      // this.renderPeers(hmsStore.getState(selectPeers));
     },
-    renderPeers(peers) {
+    async renderPeers(peers) {
       this.allPeers = peers;
-      console.log(peers);
-      peers.forEach((peer) => {
-        console.log(peer);
-        if (this.videoRefs[peer.id]) {
-          hmsActions.attachVideo(peer.videoTrack, this.videoRefs[peer.id]);
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-          // If the peer is a remote peer, attach a listener to get video and audio states
-          if (!peer.isLocal) {
-            // Set up a property to track the audio and video states of remote peer so that
-            if (!this.remotePeerProps[peer.id]) {
-              this.remotePeerProps[peer.id] = {};
+      this.$nextTick(() => {
+        this.allPeers.forEach((peer) => {
+          if (this.videoRefs[peer.id]) {
+            hmsActions.attachVideo(peer.videoTrack, this.videoRefs[peer.id]);
+
+            // If the peer is a remote peer, attach a listener to get video and audio states
+            if (!peer.isLocal) {
+              // Set up a property to track the audio and video states of remote peer so that
+              if (!this.remotePeerProps[peer.id]) {
+                this.remotePeerProps[peer.id] = {};
+              }
+              this.remotePeerProps[peer.id][this.MediaState.isAudioEnabled] =
+                hmsStore.getState(selectIsPeerAudioEnabled(peer.id));
+              this.remotePeerProps[peer.id][this.MediaState.isVideoEnabled] =
+                hmsStore.getState(selectIsPeerVideoEnabled(peer.id));
+              // this.remotePeerProps[peer.id][this.MediaState.audioLevel] = 0;
+              // Subscribe to the audio and video changes of the remote peer
+              hmsStore.subscribe(
+                (isEnabled) => this.onPeerAudioChange(isEnabled, peer.id),
+                selectIsPeerAudioEnabled(peer.id)
+              );
+              hmsStore.subscribe(
+                (isEnabled) => this.onPeerVideoChange(isEnabled, peer.id),
+                selectIsPeerVideoEnabled(peer.id)
+              );
             }
-            this.remotePeerProps[peer.id][this.MediaState.isAudioEnabled] =
-              hmsStore.getState(selectIsPeerAudioEnabled(peer.id));
-            this.remotePeerProps[peer.id][this.MediaState.isVideoEnabled] =
-              hmsStore.getState(selectIsPeerVideoEnabled(peer.id));
 
-            // Subscribe to the audio and video changes of the remote peer
+            if (peer.isLocal) {
+              this.name = peer.name;
+            }
+
+            this.$set(this.audioLevelObj, peer.id, 0);
             hmsStore.subscribe(
-              (isEnabled) => this.onPeerAudioChange(isEnabled, peer.id),
-              selectIsPeerAudioEnabled(peer.id)
-            );
-            hmsStore.subscribe(
-              (isEnabled) => this.onPeerVideoChange(isEnabled, peer.id),
-              selectIsPeerVideoEnabled(peer.id)
+              (audioLevel) => this.onPeerAudioLevelChange(audioLevel, peer.id),
+              selectPeerAudioByID(peer.id)
             );
           }
-        }
+        });
       });
     },
     onPeerAudioChange(isEnabled, peerId) {
@@ -585,6 +623,9 @@ export default {
         this.remotePeerProps[peerId][this.MediaState.isVideoEnabled] =
           isEnabled;
       }
+    },
+    onPeerAudioLevelChange(audioLevel, peerId) {
+      this.$set(this.audioLevelObj, peerId, audioLevel);
     },
     onAudioChange(newAudioState) {
       this.isAudioEnabled = newAudioState;
@@ -643,6 +684,20 @@ export default {
         console.log("failed to set virtual background -", error);
       }
     },
+    async onChangeName() {
+      await hmsActions.changeName(this.name);
+      this.nameVisible = false;
+    }
   },
 };
 </script>
+<style scoped>
+:deep(.el-dialog__header) {
+  padding: 0;
+}
+:deep(.el-dialog__body) {
+  padding: 0;
+  display: flex;
+}
+
+</style>

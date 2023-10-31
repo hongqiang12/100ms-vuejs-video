@@ -677,7 +677,6 @@ export default {
 
       // {audioInputDeviceId, audioOutputDeviceId, videoInputDeviceId}
       this.deviceSelect = hmsStore.getState(selectLocalMediaSettings);
-      console.log(this.deviceSelect);
       this.microphoneList = devices.audioInput;
       this.speakerList = devices.audioOutput;
       this.videoList = devices.videoInput;
@@ -721,8 +720,8 @@ export default {
     },
     onNotification() {
       const unsubscribe = hmsNotifications.onNotification((notification) => {
-        console.log("notification type", notification.type);
-        console.log("data", notification.data);
+        // console.log("notification type", notification.type);
+        // console.log("data", notification.data);
 
         // you can use the following to show appropriate toast notifications for eg.
         switch (notification.type) {
