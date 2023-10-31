@@ -52,13 +52,14 @@
           <div
             v-for="peer in allPeers"
             :key="peer.id"
-            class="relative flex-1 max-h-full flex items-center justify-center bg-[#0B0E15] rounded-xl"
+            class="relative flex-1 flex items-center justify-center bg-[#0B0E15] rounded-xl"
           >
             <video
               autoplay
               :muted="peer.isLocal"
               playsinline
               class="object-contain flex items-center justify-center scale-x-[-1] bg-[#0B0E15] rounded-xl"
+              :class="allPeers.length > 1 ? 'w-full' : ''"
               :ref="
                 (el) => {
                   if (el) videoRefs[peer.id] = el;
@@ -128,6 +129,47 @@
             >
               <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
                 <div
+                  v-if="!peer.isLocal"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  @click="onVideoMute(peer)"
+                >
+                  <div
+                    v-if="
+                      remotePeerProps?.[peer.id]?.[MediaState.isVideoEnabled]
+                    "
+                    class="flex gap-2"
+                  >
+                    <SvgVideo />
+                    Mute
+                  </div>
+                  <div v-else class="flex gap-2">
+                    <SvgUnVideo />
+                    Request Unmute
+                  </div>
+                </div>
+
+                <div
+                  v-if="!peer.isLocal"
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  @click="onAudioMute(peer)"
+                >
+                  <div
+                    v-if="
+                      remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled]
+                    "
+                    class="flex gap-2"
+                  >
+                    <SvgAudio />
+                    Mute
+                  </div>
+                  <div v-else class="flex gap-2">
+                    <SvgUnAudio />
+                    Request Unmute
+                  </div>
+                </div>
+
+                <div
+                  v-if="peer.isLocal"
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="nameVisible = true"
                 >
@@ -333,23 +375,32 @@
       <div class="bg-[#11131b] p-5 rounded-xl">
         <div class="flex items-center justify-between mb-3">
           <div class="font-semibold text-white text-base">Change Name</div>
-          <i class="el-icon-close text-2xl font-semibold hover:opacity-80" @click="nameVisible = false"></i>
+          <i
+            class="el-icon-close text-2xl font-semibold hover:opacity-80"
+            @click="nameVisible = false"
+          ></i>
         </div>
-        <div class="text-white/80 mb-6 text-sm">Your name will be visible to other participants in the session.</div>
+        <div class="text-white/80 mb-6 text-sm">
+          Your name will be visible to other participants in the session.
+        </div>
         <input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Enter name"
-            required
-            v-model="name"
-            class="appearance-none border border-transparent bg-[#191B23] text-[#f0f0fb] w-full py-2 px-3 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-[#538eff] text-base"
-          />
-          <div class="flex gap-4 mt-4">
-            <!-- <div class="">Change</div> -->
-            <el-button plain class="flex-1" @click="nameVisible = false">Cancel</el-button>
-            <el-button type="primary" class="flex-1" @click="onChangeName">Change</el-button>
-          </div>
+          id="name"
+          name="name"
+          type="text"
+          placeholder="Enter name"
+          required
+          v-model="name"
+          class="appearance-none border border-transparent bg-[#191B23] text-[#f0f0fb] w-full py-2 px-3 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-[#538eff] text-base"
+        />
+        <div class="flex gap-4 mt-4">
+          <!-- <div class="">Change</div> -->
+          <el-button plain class="flex-1" @click="nameVisible = false"
+            >Cancel</el-button
+          >
+          <el-button type="primary" class="flex-1" @click="onChangeName"
+            >Change</el-button
+          >
+        </div>
       </div>
     </el-dialog>
   </div>
@@ -571,7 +622,7 @@ export default {
     async renderPeers(peers) {
       this.allPeers = peers;
       await new Promise((resolve) => setTimeout(resolve, 300));
-
+      console.log(peers);
       this.$nextTick(() => {
         this.allPeers.forEach((peer) => {
           if (this.videoRefs[peer.id]) {
@@ -687,7 +738,17 @@ export default {
     async onChangeName() {
       await hmsActions.changeName(this.name);
       this.nameVisible = false;
-    }
+    },
+    onVideoMute(peer) {
+      if (this.remotePeerProps?.[peer.id]?.[this.MediaState.isVideoEnabled]) {
+        hmsActions.setRemoteTrackEnabled(peer.videoTrack, false);
+      }
+    },
+    onAudioMute(peer) {
+      if (this.remotePeerProps?.[peer.id]?.[this.MediaState.isAudioEnabled]) {
+        hmsActions.setRemoteTrackEnabled(peer.audioTrack, false);
+      }
+    },
   },
 };
 </script>
@@ -699,5 +760,4 @@ export default {
   padding: 0;
   display: flex;
 }
-
 </style>
