@@ -169,6 +169,15 @@
                 </div>
 
                 <div
+                  v-if="!peer.isLocal"
+                  class="bg-[#11131b] font-semibold text-[#C74E5B] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  @click="onRomove(peer)"
+                >
+                  <SvgUserClose />
+                  Remove Participant
+                </div>
+
+                <div
                   v-if="peer.isLocal"
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-2 border-t border-[#1D1F27] flex gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
                   @click="nameVisible = true"
@@ -749,6 +758,10 @@ export default {
         hmsActions.setRemoteTrackEnabled(peer.audioTrack, false);
       }
     },
+    onRomove(peer) {
+      const reason = 'Good Bye';
+      hmsActions.removePeer(peer.id, reason);
+    }
   },
 };
 </script>
