@@ -62,6 +62,14 @@
     </div>
     <div class="flex-1 px-6">
       <div class="relative w-full h-full flex gap-2">
+        <div class="w-[960px] h-[650px]" v-if="isSomeoneScreenSharing">
+          <video
+            autoplay
+            playsinline
+            class="h-full w-full object-cover"
+            ref="screenSharing"
+          ></video>
+        </div>
         <div
           ref="content"
           class="flex-1 flex-wrap place-content-center flex items-center justify-center gap-2"
@@ -418,11 +426,52 @@
       </div>
       <div class="flex gap-4">
         <div
-          class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
           :class="isScreenShareEnabled ? 'bg-[#293042]' : ''"
-          @click="toggleScreenShare"
         >
-          <i class="el-icon-s-platform"></i>
+          <div
+            class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleScreenShare"
+          >
+            <SvgScreenShare />
+          </div>
+          <el-popover
+            width="384"
+            v-model="screenShareVisible"
+            :visible-arrow="false"
+            popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
+            trigger="click"
+            :disabled="isScreenShareEnabled"
+          >
+            <div class="bg-[#11131b] rounded-md text-[#f0f0fb]">
+              <div class="pt-6 px-6 pb-3">
+                <p class="text-xl font-semibold">Start Sharing</p>
+                <p class="text-sm">Choose what you want to share</p>
+              </div>
+              <div class="flex gap-4 pt-3 pb-6 px-6">
+                <div class="" @click="toggleScreenShare">
+                  <div class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer">
+                    <img src="~/static/screenshare.png" alt="">
+                  </div>
+                  <p class="text-sm text-center font-semibold">Share Screen</p>
+                  <p class="text-[#8f909a] text-xs text-center">Share your tab, window or your entire screen</p>
+                </div>
+                <div class="">
+                  <div class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer">
+                    <img src="~/static/pdfshare.png" alt="">
+                  </div>
+                  <p class="text-sm text-center font-semibold">Share PDF</p>
+                  <p class="text-[#8f909a] text-xs text-center">Annotate, draw shapes, and more over PDFs</p>
+                </div>
+              </div>
+            </div>
+            <div
+              slot="reference"
+              class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            >
+              <i class="el-icon-more rotate-90 text-xl"></i>
+            </div>
+          </el-popover>
         </div>
         <div
           class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
@@ -917,6 +966,7 @@ export default {
       sendValue: "",
       messageList: [],
       isScreenShareEnabled: hmsStore.getState(selectIsLocalScreenShared),
+      screenShareVisible: false,
       isLive: false,
 
       virtualBackground: null,
@@ -1090,6 +1140,7 @@ export default {
     },
 
     async toggleScreenShare() {
+      this.screenShareVisible = false;
       const enabled = hmsStore.getState(selectIsLocalScreenShared);
       await hmsActions.setScreenShareEnabled(!enabled);
     },
@@ -1463,7 +1514,7 @@ export default {
     },
     onJSONParse(string) {
       return JSON.parse(string) || {};
-    }
+    },
   },
 };
 </script>
