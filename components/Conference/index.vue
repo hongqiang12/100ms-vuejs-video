@@ -477,9 +477,10 @@
             </div>
             <div
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+              @click="isFullscreen ? onExitFullScreen() : onFullScreen()"
             >
               <SvgFullscreen />
-              Go Fullscreen
+              {{ isFullscreen ? "Exit" : "Go" }} Fullscreen
             </div>
             <div class="h-[1px] w-full my-2 bg-[#272932]"></div>
             <div
@@ -937,6 +938,7 @@ export default {
 
       optionsShow: false,
       BRBShow: false,
+      isFullscreen: false,
     };
   },
   computed: {
@@ -985,6 +987,7 @@ export default {
     hmsStore.subscribe(this.recordingState, selectRecordingState);
     // this.onResize();
     // window.addEventListener("resize", this.onResize);
+    document.addEventListener("fullscreenchange", this.onFullscreenchange);
   },
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
@@ -992,6 +995,7 @@ export default {
     PictureInPicture.stop().catch((err) =>
       console.error("error in stopping pip on unmount", err)
     );
+    document.removeEventListener("fullscreenchange", this.onFullscreenchange);
   },
   methods: {
     onResize() {
@@ -1324,6 +1328,35 @@ export default {
           }
         }).catch((err) => console.error("error in starting pip", err));
         MediaSession.setup(hmsActions, hmsStore);
+      }
+    },
+    onFullScreen() {
+      let de = document.documentElement;
+      this.optionsShow = false;
+      if (de.requestFullscreen) {
+        de.requestFullscreen();
+      } else if (de.mozRequestFullscreen) {
+        de.mozRequestFullscreen();
+      } else if (de.webkitRequestFullscreen) {
+        de.webkitRequestFullscreen();
+      }
+    },
+    onExitFullScreen() {
+      let de = document;
+      this.optionsShow = false;
+      if (de.exitFullscreen) {
+        de.exitFullscreen();
+      } else if (de.mozCancelFullscreen) {
+        de.mozCancelFullscreen();
+      } else if (de.webkitCancelFullscreen) {
+        de.webkitCancelFullscreen();
+      }
+    },
+    onFullscreenchange() {
+      if (document.fullscreenElement) {
+        this.isFullscreen = true;
+      } else {
+        this.isFullscreen = false;
       }
     },
 
