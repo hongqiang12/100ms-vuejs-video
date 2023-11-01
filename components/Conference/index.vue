@@ -69,7 +69,7 @@
           <div
             v-for="peer in allPeers"
             :key="peer.id"
-            class="relative flex-1 flex items-center justify-center bg-[#0B0E15] rounded-xl"
+            class="group relative flex-1 flex items-center justify-center bg-[#0B0E15] rounded-xl"
           >
             <video
               autoplay
@@ -219,7 +219,7 @@
               </div>
 
               <div
-                class="absolute right-1 bottom-1 bg-[#05070e]/60 text-white w-7 h-7 rounded-3xl flex items-center justify-center cursor-pointer"
+                class="absolute right-1 bottom-1 bg-[#05070e]/60 text-white w-7 h-7 rounded-3xl flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100"
                 slot="reference"
               >
                 <i class="el-icon-more rotate-90 text-lg"></i>
