@@ -225,6 +225,8 @@
                 <i class="el-icon-more rotate-90 text-lg"></i>
               </div>
             </el-popover>
+
+            <div class="absolute left-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center text-white text-xs" v-if="BRBShow">BRB</div>
           </div>
         </div>
         <div
@@ -442,16 +444,22 @@
         </div>
         <el-popover
           width="256"
+          v-model="optionsShow"
           :visible-arrow="false"
           popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
           trigger="click"
         >
           <div class="rounded-md bg-[#11131b]">
             <div
-              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+              @click="BRBShow = !BRBShow;optionsShow = false;"
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center justify-between first:border-transparent hover:bg-[#272932] cursor-pointer"
             >
+              <div class="flex items-center gap-2">
+
               <SvgBRB />
               Be Right Back
+              </div>
+              <SvgChecked v-if="BRBShow" />
             </div>
             <div
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
@@ -915,6 +923,9 @@ export default {
       audioed: false,
       videoed: true,
       volume: 100,
+
+      optionsShow: false,
+      BRBShow: false,
     };
   },
   computed: {
@@ -1255,6 +1266,7 @@ export default {
     },
     async onSetting() {
       this.settingVisible = true;
+      this.optionsShow = false;
       this.tabIndex = 0;
       this.$nextTick(() => {
         const element = this.$refs.dialogVideo;
