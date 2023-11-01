@@ -232,6 +232,12 @@
             >
               BRB
             </div>
+            <div
+              class="absolute left-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center text-white text-xs"
+              v-if="peer.isHandRaised"
+            >
+              <SvgRaiseHand />
+            </div>
           </div>
         </div>
         <div
@@ -417,6 +423,13 @@
           @click="toggleScreenShare"
         >
           <i class="el-icon-s-platform"></i>
+        </div>
+        <div
+          class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          :class="isHandRaised ? 'bg-[#293042]' : ''"
+          @click="toggleRaiseHand"
+        >
+          <SvgRaiseHand />
         </div>
         <div
           class="rounded-md text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden bg-[rgb(199,78,91)] hover:bg-[rgb(255,178,182)]"
@@ -877,6 +890,8 @@ import {
   HMSNotificationTypes,
   selectAudioTrackVolume,
   selectLocalVideoTrackID,
+  selectLocalPeerID,
+  selectHasPeerHandRaised,
 } from "@100mslive/hms-video-store";
 import { selectTracksMap } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -939,6 +954,8 @@ export default {
       optionsShow: false,
       BRBShow: false,
       isFullscreen: false,
+
+      isHandRaised: false,
     };
   },
   computed: {
@@ -1357,6 +1374,18 @@ export default {
         this.isFullscreen = true;
       } else {
         this.isFullscreen = false;
+      }
+    },
+    async toggleRaiseHand() {
+      const localPeerId = hmsStore.getState(selectLocalPeerID);
+      const isHandRaised = hmsStore.getState(
+        selectHasPeerHandRaised(localPeerId)
+      );
+      this.isHandRaised = !isHandRaised;
+      if (isHandRaised) {
+        await hmsActions.lowerLocalPeerHand();
+      } else {
+        await hmsActions.raiseLocalPeerHand();
       }
     },
 
