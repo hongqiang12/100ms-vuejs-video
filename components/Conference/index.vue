@@ -228,7 +228,7 @@
 
             <div
               class="absolute left-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center text-white text-xs"
-              v-if="BRBShow"
+              v-if="onJSONParse(peer.metadata)?.isBRB"
             >
               BRB
             </div>
@@ -469,10 +469,7 @@
         >
           <div class="rounded-md bg-[#11131b]">
             <div
-              @click="
-                BRBShow = !BRBShow;
-                optionsShow = false;
-              "
+              @click="onBRB"
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center justify-between first:border-transparent hover:bg-[#272932] cursor-pointer"
             >
               <div class="flex items-center gap-2">
@@ -892,6 +889,7 @@ import {
   selectLocalVideoTrackID,
   selectLocalPeerID,
   selectHasPeerHandRaised,
+  selectPeerMetadata,
 } from "@100mslive/hms-video-store";
 import { selectTracksMap } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -1320,6 +1318,14 @@ export default {
         }
       });
     },
+    async onBRB() {
+      this.isBRB = !this.isBRB;
+      this.optionsShow = false;
+      const localPeerId = hmsStore.getState(selectLocalPeerID);
+      const metadata = hmsStore.getState(selectPeerMetadata(localPeerId));
+      const newMetadata = { ...metadata, isBRB: !this.isBRB };
+      await hmsActions.changeMetadata(newMetadata);
+    },
     onPIP() {
       const isSupported = PictureInPicture.isSupported(); // to check if PiP is supported. This depends on browser implementation. For example, it is not supported in firefox
       const isPipOn = PictureInPicture.isOn(); // to check whether PiP is enabled.
@@ -1455,6 +1461,9 @@ export default {
     onChangeVolume(value) {
       hmsActions.setVolume(value, this.peer.audioTrack);
     },
+    onJSONParse(string) {
+      return JSON.parse(string) || {};
+    }
   },
 };
 </script>
