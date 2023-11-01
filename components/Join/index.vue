@@ -41,14 +41,8 @@
               class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
               @click="toggleAudio"
             >
-              <i
-                class="text-xl"
-                :class="
-                  isAudioEnabled
-                    ? 'el-icon-microphone'
-                    : 'el-icon-turn-off-microphone'
-                "
-              ></i>
+              <SvgAudio v-if="isAudioEnabled" />
+              <SvgUnAudio v-else />
             </div>
             <el-popover
               width="256"
@@ -87,14 +81,8 @@
               class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
               @click="toggleVideo"
             >
-              <i
-                class="text-xl"
-                :class="
-                  isVideoEnabled
-                    ? 'el-icon-video-camera-solid'
-                    : 'el-icon-video-camera'
-                "
-              ></i>
+              <SvgVideo v-if="isVideoEnabled" />
+              <SvgUnVideo v-else />
             </div>
             <el-popover
               width="256"
@@ -135,7 +123,7 @@
               class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
               @click="toggleVB"
             >
-              <i class="el-icon-picture text-xl"></i>
+              <SvgPicture />
             </div>
           </div>
         </div>
@@ -590,7 +578,8 @@ export default {
             selectPeerAudioByID(peer.id)
           );
           this.peer = peer;
-          this.volume = hmsStore.getState(selectAudioTrackVolume(peer.audioTrack)) || 100;
+          this.volume =
+            hmsStore.getState(selectAudioTrackVolume(peer.audioTrack)) || 100;
         }
         hmsActions.attachVideo(peer.videoTrack, element);
         this.getDevices();

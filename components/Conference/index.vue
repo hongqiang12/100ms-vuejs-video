@@ -318,19 +318,37 @@
             class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
             @click="toggleAudio"
           >
-            <i
-              :class="
-                isAudioEnabled
-                  ? 'el-icon-microphone'
-                  : 'el-icon-turn-off-microphone'
-              "
-            ></i>
+            <SvgAudio v-if="isAudioEnabled" />
+            <SvgUnAudio v-else />
           </div>
-          <div
-            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+          <el-popover
+            width="256"
+            :visible-arrow="false"
+            popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
+            trigger="click"
           >
-            <i class="el-icon-more rotate-90"></i>
-          </div>
+            <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div
+                class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                v-for="item in microphoneList"
+                :key="item.deviceId"
+                :class="
+                  deviceSelect.audioInputDeviceId == item.deviceId
+                    ? 'bg-[#272932]'
+                    : ''
+                "
+                @click="setAudioDevice(item.deviceId)"
+              >
+                {{ item.label }}
+              </div>
+            </div>
+            <div
+              slot="reference"
+              class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            >
+              <i class="el-icon-more rotate-90 text-xl"></i>
+            </div>
+          </el-popover>
         </div>
         <div
           class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
@@ -340,19 +358,37 @@
             class="w-10 h-10 border-r border-[#272a31] flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
             @click="toggleVideo"
           >
-            <i
-              :class="
-                isVideoEnabled
-                  ? 'el-icon-video-camera-solid'
-                  : 'el-icon-video-camera'
-              "
-            ></i>
+            <SvgVideo v-if="isVideoEnabled" />
+            <SvgUnVideo v-else />
           </div>
-          <div
-            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+          <el-popover
+            width="256"
+            :visible-arrow="false"
+            popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
+            trigger="click"
           >
-            <i class="el-icon-more rotate-90"></i>
-          </div>
+            <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div
+                class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                v-for="item in videoList"
+                :key="item.deviceId"
+                :class="
+                  deviceSelect.videoInputDeviceId == item.deviceId
+                    ? 'bg-[#272932]'
+                    : ''
+                "
+                @click="setVideoDevice(item.deviceId)"
+              >
+                {{ item.label }}
+              </div>
+            </div>
+            <div
+              slot="reference"
+              class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            >
+              <i class="el-icon-more rotate-90 text-xl"></i>
+            </div>
+          </el-popover>
         </div>
 
         <div
@@ -363,7 +399,7 @@
             class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
             @click="toggleVB"
           >
-            <i class="el-icon-picture"></i>
+            <SvgPicture />
           </div>
         </div>
       </div>
@@ -404,6 +440,11 @@
           <i class="el-icon-s-custom"></i>
           {{ allPeers.length }}
         </div>
+        <div
+          class="rounded-md border border-[#272a31] text-white gap-2 px-3 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+        >
+          <SvgMore />
+        </div>
       </div>
     </div>
     <el-dialog
@@ -443,6 +484,306 @@
         </div>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="settingVisible"
+      width="800px"
+      :show-close="false"
+      custom-class="border border-[#272932] rounded-xl !bg-transparent"
+    >
+      <div class="py-10 px-6 bg-[#0B0E15] w-[300px] text-[#f0f0fb]">
+        <p class="text-2xl font-semibold">Settings</p>
+        <div class="pt-6">
+          <div
+            class="flex gap-4 p-4 rounded-lg cursor-pointer"
+            :class="tabIndex == 0 ? 'bg-[#2e3038]' : ''"
+            @click="onTab(0)"
+          >
+            <i class="el-icon-setting text-xl"></i>
+            Device Settings
+          </div>
+          <div
+            class="flex gap-4 p-4 rounded-lg cursor-pointer"
+            :class="tabIndex == 1 ? 'bg-[#2e3038]' : ''"
+            @click="tabIndex = 1"
+          >
+            <i class="el-icon-bell text-xl"></i>
+            Notifications
+          </div>
+          <div
+            class="flex gap-4 p-4 rounded-lg cursor-pointer"
+            :class="tabIndex == 2 ? 'bg-[#2e3038]' : ''"
+            @click="tabIndex = 2"
+          >
+            <i class="el-icon-menu text-xl"></i>
+            Layout
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#191B23] p-6 relative flex-1">
+        <div
+          class="w-8 h-8 absolute top-6 right-6 rounded hover:bg-[#8f909a] flex items-center justify-center text-white cursor-pointer"
+          @click="settingVisible = false"
+        >
+          <i class="el-icon-close text-2xl font-bold"></i>
+        </div>
+        <p class="text-xl font-semibold text-[#f0f0fb] mb-8">
+          {{ dialogTitle }}
+        </p>
+        <div class="overflow-y h-[550px] hide-scrollbar" v-if="tabIndex == 0">
+          <div class="my-6 px-6">
+            <video
+              autoplay
+              playsinline
+              class="h-full w-full object-contain scale-x-[-1] rounded-xl"
+              ref="dialogVideo"
+            ></video>
+          </div>
+          <div class="mb-6">
+            <p class="text-base mb-2 text-[#f0f0fb]">Video</p>
+            <el-popover
+              width="450"
+              v-model="videoDialogShow"
+              :visible-arrow="false"
+              popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
+              trigger="click"
+            >
+              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+                <div
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  v-for="item in videoList"
+                  :key="item.deviceId"
+                  :class="
+                    deviceSelect.videoInputDeviceId == item.deviceId
+                      ? 'bg-[#272932]'
+                      : ''
+                  "
+                  @click="setVideoDevice(item.deviceId)"
+                >
+                  {{ item.label }}
+                </div>
+              </div>
+              <div
+                slot="reference"
+                class="py-3 px-5 flex items-center cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
+              >
+                <i class="el-icon-video-camera text-xl"></i>
+                <p class="flex-1 w-[324px] mx-3 text-base truncate">
+                  {{ videoName }}
+                </p>
+                <i
+                  class="el-icon-arrow-down text-xl"
+                  :class="videoDialogShow ? 'rotate-180' : ''"
+                ></i>
+              </div>
+            </el-popover>
+          </div>
+          <div class="mb-6">
+            <p class="text-base mb-2 text-[#f0f0fb]">Microphone</p>
+            <el-popover
+              width="450"
+              v-model="microphoneDialogShow"
+              :visible-arrow="false"
+              popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
+              trigger="click"
+            >
+              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+                <div
+                  class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                  v-for="item in microphoneList"
+                  :key="item.deviceId"
+                  :class="
+                    deviceSelect.audioInputDeviceId == item.deviceId
+                      ? 'bg-[#272932]'
+                      : ''
+                  "
+                  @click="setAudioDevice(item.deviceId)"
+                >
+                  {{ item.label }}
+                </div>
+              </div>
+              <div
+                slot="reference"
+                class="py-3 px-5 flex items-center cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
+              >
+                <i class="el-icon-microphone text-xl"></i>
+                <p class="flex-1 w-[324px] mx-3 text-base truncate">
+                  {{ microphoneName }}
+                </p>
+                <i
+                  class="el-icon-arrow-down text-xl"
+                  :class="microphoneDialogShow ? 'rotate-180' : ''"
+                ></i>
+              </div>
+            </el-popover>
+          </div>
+          <div class="mb-6">
+            <p class="text-base mb-2 text-[#f0f0fb]">Speaker</p>
+            <div class="flex gap-2">
+              <el-popover
+                width="340"
+                v-model="speakerDialogShow"
+                :visible-arrow="false"
+                popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
+                trigger="click"
+              >
+                <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+                  <div
+                    class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                    v-for="item in speakerList"
+                    :key="item.deviceId"
+                    :class="
+                      deviceSelect.audioOutputDeviceId == item.deviceId
+                        ? 'bg-[#272932]'
+                        : ''
+                    "
+                    @click="setAudioOutputDevice(item.deviceId)"
+                  >
+                    {{ item.label }}
+                  </div>
+                </div>
+                <div
+                  slot="reference"
+                  class="py-3 px-5 w-full flex items-center cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
+                >
+                  <SvgSpeaker />
+                  <p class="flex-1 w-[232px] mx-3 text-base truncate">
+                    {{ speakerName }}
+                  </p>
+                  <i
+                    class="el-icon-arrow-down text-xl"
+                    :class="speakerDialogShow ? 'rotate-180' : ''"
+                  ></i>
+                </div>
+              </el-popover>
+              <div
+                class="bg-[#2e3038] text-[#f0f0fb] py-3 px-5 flex-1 flex items-center gap-1 rounded-lg cursor-pointer hover:bg-[#272932]"
+              >
+                <SvgSpeaker />
+                Test
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-base" v-if="tabIndex == 1">
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="peerJoined = !peerJoined"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="peerJoined ? '' : 'opacity-50'"
+            >
+              <SvgUserAdd />
+              Peer Joined
+            </div>
+            <el-switch
+              :value="peerJoined"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="peerLeave = !peerLeave"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="peerLeave ? '' : 'opacity-50'"
+            >
+              <SvgUserRemove />
+              Peer Leave
+            </div>
+            <el-switch
+              :value="peerLeave"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="handRaised = !handRaised"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="handRaised ? '' : 'opacity-50'"
+            >
+              <SvgHand />
+              Hand Raised
+            </div>
+            <el-switch
+              :value="handRaised"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="errored = !errored"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="errored ? '' : 'opacity-50'"
+            >
+              <SvgWarning />
+              Error
+            </div>
+            <el-switch
+              :value="errored"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+        </div>
+        <div class="text-base" v-if="tabIndex == 2">
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="audioed = !audioed"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="audioed ? '' : 'opacity-50'"
+            >
+              Audio Only Mode
+            </div>
+            <el-switch
+              :value="audioed"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+          <div
+            class="my-1 py-4 border-b border-[#1D1F27] flex items-center justify-between cursor-pointer"
+            @click="videoed = !videoed"
+          >
+            <div
+              class="flex items-center gap-4 text-white"
+              :class="videoed ? '' : 'opacity-50'"
+            >
+              Mirror Local Video
+            </div>
+            <el-switch
+              :value="videoed"
+              inactive-color="#191b23"
+              active-color="#2572ED"
+            >
+            </el-switch>
+          </div>
+          <div class="my-1 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4 text-white">
+              Tiles In View({{ volume }})
+            </div>
+            <div class="w-[226px]">
+              <el-slider v-model="volume" @change="onChangeVolume"></el-slider>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -469,6 +810,10 @@ import {
   selectHLSState,
   selectIsLocalVideoPluginPresent,
   selectPeerAudioByID,
+  selectDevices,
+  selectLocalMediaSettings,
+  HMSNotificationTypes,
+  selectAudioTrackVolume,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 import { watch } from "vue";
@@ -508,6 +853,24 @@ export default {
 
       nameVisible: false,
       name: "",
+
+      videoList: [],
+      microphoneList: [],
+      speakerList: [],
+      deviceSelect: {},
+      settingVisible: false,
+
+      videoDialogShow: false,
+      microphoneDialogShow: false,
+      speakerDialogShow: false,
+      tabIndex: 0,
+      peerJoined: false,
+      peerLeave: false,
+      handRaised: true,
+      errored: true,
+      audioed: false,
+      videoed: true,
+      volume: 100,
     };
   },
   computed: {
@@ -521,31 +884,25 @@ export default {
         ? "Stop Recording"
         : "Start Recording";
     },
-    // videoStyle() {
-    //   const Len = this.allPeers.length;
-    //   let style = {};
-    //   switch (Len) {
-    //     case 1:
-    //       style = {
-    //         width: this.domStyle.width + "px",
-    //         height: this.domStyle.height + "px",
-    //       };
-    //       break;
-    //     case 2:
-    //       style = {
-    //         width: this.domStyle.width / 2 - 8 + "px",
-    //         height: this.domStyle.width / 2 - 8 + "px",
-    //       };
-    //       break;
-    //     default:
-    //       style = {
-    //         width: this.domStyle.width / 2 - 8 + "px",
-    //         height: (this.domStyle.width / 2 - 8) / Math.round(Len / 2) + "px",
-    //       };
-    //       break;
-    //   }
-    //   return style;
-    // },
+    videoName() {
+      return this.videoList.filter(
+        (r) => r.deviceId == this.deviceSelect.videoInputDeviceId
+      )[0]?.label;
+    },
+    microphoneName() {
+      return this.microphoneList.filter(
+        (r) => r.deviceId == this.deviceSelect.audioInputDeviceId
+      )[0]?.label;
+    },
+    speakerName() {
+      return this.speakerList.filter(
+        (r) => r.deviceId == this.deviceSelect.audioOutputDeviceId
+      )[0]?.label;
+    },
+    dialogTitle() {
+      const names = ["Device Settings", "Notifications", "Layout"];
+      return names[this.tabIndex];
+    },
   },
   mounted() {
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
@@ -702,6 +1059,7 @@ export default {
             );
           }
         });
+        this.getDevices();
       });
     },
     onPeerAudioChange(isEnabled, peerId) {
@@ -820,6 +1178,120 @@ export default {
       await hmsActions.stopRTMPAndRecording();
       // this.isRecording = false;
       this.recordPopover = false;
+    },
+    async getDevices() {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      // {audioInput, audioOutput, videoInput}
+      const devices = hmsStore.getState(selectDevices);
+
+      // {audioInputDeviceId, audioOutputDeviceId, videoInputDeviceId}
+      this.deviceSelect = hmsStore.getState(selectLocalMediaSettings);
+      this.microphoneList = devices.audioInput;
+      this.speakerList = devices.audioOutput;
+      this.videoList = devices.videoInput;
+    },
+    async setAudioDevice(selectedAudioDeviceID) {
+      // Update AudioInput device by calling
+      hmsActions.setAudioSettings({ deviceId: selectedAudioDeviceID });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      this.deviceSelect = hmsStore.getState(selectLocalMediaSettings);
+    },
+    async setVideoDevice(selecedVideoDeviceID) {
+      // Update VideoInput device by calling
+      hmsActions.setVideoSettings({ deviceId: selecedVideoDeviceID });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      this.deviceSelect = hmsStore.getState(selectLocalMediaSettings);
+    },
+    async setAudioOutputDevice(selectedAudioOutputDeviceID) {
+      // Update AudioOutput device by calling
+      hmsActions.setAudioOutputDevice(selectedAudioOutputDeviceID);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      this.deviceSelect = hmsStore.getState(selectLocalMediaSettings);
+    },
+    async onSetting() {
+      this.settingVisible = true;
+      this.tabIndex = 0;
+      this.$nextTick(() => {
+        const element = this.$refs.dialogVideo;
+        if (this.peer) {
+          hmsActions.attachVideo(this.peer.videoTrack, element);
+        }
+      });
+    },
+    onTab(index) {
+      this.tabIndex = index;
+      this.$nextTick(() => {
+        const element = this.$refs.dialogVideo;
+        if (this.peer) {
+          hmsActions.attachVideo(this.peer.videoTrack, element);
+        }
+      });
+    },
+    onNotification() {
+      const unsubscribe = hmsNotifications.onNotification((notification) => {
+        // console.log("notification type", notification.type);
+        // console.log("data", notification.data);
+
+        // you can use the following to show appropriate toast notifications for eg.
+        switch (notification.type) {
+          case HMSNotificationTypes.PEER_LIST:
+            console.log(`${notification.data} are the peers in the room`); // received right after join
+            break;
+          case HMSNotificationTypes.PEER_JOINED:
+            console.log(`${notification.data.name} joined`);
+            break;
+          case HMSNotificationTypes.PEER_LEFT:
+            console.log(`${notification.data.name} left`);
+            break;
+          case HMSNotificationTypes.NEW_MESSAGE:
+            console.log(
+              `${notification.data.message} received from ${notification.data.senderName}`
+            );
+            break;
+          case HMSNotificationTypes.ERROR:
+            console.log("[Error]", notification.data);
+            console.log("[Error Code]", notfication.data.code);
+            break;
+          case HMSNotificationTypes.RECONNECTING:
+            console.log("[Reconnecting]", notification.data);
+            break;
+          case HMSNotificationTypes.RECONNECTED:
+            console.log("[Reconnected]");
+            break;
+          case HMSNotificationTypes.NAME_UPDATED:
+          case HMSNotificationTypes.METADATA_UPDATED:
+          case HMSNotificationTypes.ROLE_UPDATED:
+            console.log(
+              `peer updated(${notification.type}), new peer=`,
+              notification.data
+            );
+            break;
+          case HMSNotificationTypes.TRACK_DEGRADED:
+            console.log(
+              `track - ${notification.data} degraded due to poor network`
+            );
+            break;
+          case HMSNotificationTypes.TRACK_RESTORED:
+            console.log(`track - ${notification.data} recovered`);
+            break;
+          case HMSNotificationTypes.ROOM_ENDED:
+            console.log(`room ended, reason - ${notification.data.reason}`);
+            break;
+          case HMSNotificationTypes.REMOVED_FROM_ROOM:
+            console.log(
+              `removed from room, reason - ${notification.data.reason}`
+            );
+            break;
+          case HMSNotificationTypes.DEVICE_CHANGE_UPDATE:
+            console.log(`device changed - ${notification.data}`);
+            break;
+          default:
+            break;
+        }
+      });
+    },
+    onChangeVolume(value) {
+      hmsActions.setVolume(value, this.peer.audioTrack);
     },
   },
 };
