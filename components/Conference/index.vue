@@ -226,7 +226,12 @@
               </div>
             </el-popover>
 
-            <div class="absolute left-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center text-white text-xs" v-if="BRBShow">BRB</div>
+            <div
+              class="absolute left-2 top-2 rounded-full w-9 h-9 bg-[#191e27] flex items-center justify-center text-white text-xs"
+              v-if="BRBShow"
+            >
+              BRB
+            </div>
           </div>
         </div>
         <div
@@ -451,17 +456,20 @@
         >
           <div class="rounded-md bg-[#11131b]">
             <div
-              @click="BRBShow = !BRBShow;optionsShow = false;"
+              @click="
+                BRBShow = !BRBShow;
+                optionsShow = false;
+              "
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center justify-between first:border-transparent hover:bg-[#272932] cursor-pointer"
             >
               <div class="flex items-center gap-2">
-
-              <SvgBRB />
-              Be Right Back
+                <SvgBRB />
+                Be Right Back
               </div>
               <SvgChecked v-if="BRBShow" />
             </div>
             <div
+              @click="onPIP"
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
             >
               <SvgPIP />
@@ -838,6 +846,8 @@
   </div>
 </template>
 <script>
+import { PictureInPicture } from "../PIP/PIPManager";
+import { MediaSession } from "../PIP/SetupMediaSession";
 import { HMSVirtualBackgroundPlugin } from "@100mslive/hms-virtual-background";
 import dayjs from "dayjs";
 import {
@@ -867,6 +877,7 @@ import {
   selectAudioTrackVolume,
   selectLocalVideoTrackID,
 } from "@100mslive/hms-video-store";
+import { selectTracksMap } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 import { watch } from "vue";
 export default {
@@ -978,6 +989,9 @@ export default {
   beforeUnmount() {
     if (this.allPeers.length) this.leaveMeeting();
     // window.removeEventListener("resize", this.onResize);
+    PictureInPicture.stop().catch((err) =>
+      console.error("error in stopping pip on unmount", err)
+    );
   },
   methods: {
     onResize() {
@@ -1116,7 +1130,6 @@ export default {
         });
         this.getDevices();
       });
-      console.log(hmsStore.getState(selectLocalVideoTrackID))
     },
     onPeerAudioChange(isEnabled, peerId) {
       if (this.videoRefs[peerId]) {
@@ -1270,7 +1283,7 @@ export default {
       this.tabIndex = 0;
       this.$nextTick(() => {
         const element = this.$refs.dialogVideo;
-        const videoTrack = hmsStore.getState(selectLocalVideoTrackID)
+        const videoTrack = hmsStore.getState(selectLocalVideoTrackID);
         if (videoTrack) {
           hmsActions.attachVideo(videoTrack, element);
         }
@@ -1280,12 +1293,40 @@ export default {
       this.tabIndex = index;
       this.$nextTick(() => {
         const element = this.$refs.dialogVideo;
-        const videoTrack = hmsStore.getState(selectLocalVideoTrackID)
+        const videoTrack = hmsStore.getState(selectLocalVideoTrackID);
         if (videoTrack) {
           hmsActions.attachVideo(videoTrack, element);
         }
       });
     },
+    onPIP() {
+      const isSupported = PictureInPicture.isSupported(); // to check if PiP is supported. This depends on browser implementation. For example, it is not supported in firefox
+      const isPipOn = PictureInPicture.isOn(); // to check whether PiP is enabled.
+      this.optionsShow = false;
+      if (!isSupported) {
+        this.$message.error("The current browser does not support PiP!");
+        return;
+      }
+      if (isPipOn) {
+        PictureInPicture.stop().catch((err) =>
+          console.error("error in stopping pip", err)
+        );
+      } else {
+        // To start pip, pass hmsActions and a callback function which receives the current state of pip
+        PictureInPicture.start(hmsActions, (val) => {
+          if (val) {
+            PictureInPicture.updatePeersAndTracks(
+              hmsStore.getState(selectPeers),
+              hmsStore.getState(selectTracksMap)
+            ).catch((err) => {
+              console.error("error in updating pip", err);
+            });
+          }
+        }).catch((err) => console.error("error in starting pip", err));
+        MediaSession.setup(hmsActions, hmsStore);
+      }
+    },
+
     onNotification() {
       const unsubscribe = hmsNotifications.onNotification((notification) => {
         // console.log("notification type", notification.type);

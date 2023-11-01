@@ -2,6 +2,17 @@
 # yarn lockfile v1
 
 
+"@100mslive/hms-video-store@0.10.18":
+  version "0.10.18"
+  resolved "https://registry.yarnpkg.com/@100mslive/hms-video-store/-/hms-video-store-0.10.18.tgz#f43cce543a65dce8105e5db2f758a908aaed090e"
+  integrity sha512-4oaqYwRUhXtZ5UzegdfqC1+/dQ/xOVN7WSJFMakWYTue0ciSiYkdkSsI4DeemfuYIO4OEbr3nlX1VK8xSB8QSA==
+  dependencies:
+    "@100mslive/hms-video" "0.9.18"
+    eventemitter2 "^6.4.7"
+    immer "^9.0.6"
+    reselect "4.0.0"
+    zustand "3.5.7"
+
 "@100mslive/hms-video-store@^0.10.17":
   version "0.10.17"
   resolved "https://registry.npmjs.org/@100mslive/hms-video-store/-/hms-video-store-0.10.17.tgz"
@@ -24,6 +35,17 @@
     uuid "^8.3.2"
     webrtc-adapter "^8.0.0"
 
+"@100mslive/hms-video@0.9.18":
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/@100mslive/hms-video/-/hms-video-0.9.18.tgz#c880c856f00f5ab16bad9c1c7d9eeba82af3c9b3"
+  integrity sha512-3+qmcUkVkIPOMxeTZ2v5Jk1YyJctstW47hXmyNH82bTJQgpcDiyIb98pZW53DyQ4RdYkga7AiKpRWF/p7aRq6A==
+  dependencies:
+    eventemitter2 "^6.4.7"
+    sdp-transform "^2.14.1"
+    ua-parser-js "^1.0.1"
+    uuid "^8.3.2"
+    webrtc-adapter "^8.0.0"
+
 "@100mslive/hms-virtual-background@^1.11.18":
   version "1.11.18"
   resolved "https://registry.yarnpkg.com/@100mslive/hms-virtual-background/-/hms-virtual-background-1.11.18.tgz#0dfc38daba86995252fcfd1b67de8ab5b02a6a41"
@@ -38,6 +60,15 @@
     "@webassemblyjs/wasm-gen" "1.11.1"
     gifuct-js "^2.1.2"
     wasm-check "^2.0.2"
+
+"@100mslive/react-sdk@^0.8.18":
+  version "0.8.18"
+  resolved "https://registry.yarnpkg.com/@100mslive/react-sdk/-/react-sdk-0.8.18.tgz#94cd6b203ca53eeb1f62306a6e0ed75210784e47"
+  integrity sha512-rWZ86LNSCrJ5ed3EawKFL1WeaqVeVRfWH0EtrYw1tpKVPzB7g1fzp4IZ7E6/IoL65ewwz+JA5WY84/08VY1+7Q==
+  dependencies:
+    "@100mslive/hms-video-store" "0.10.18"
+    react-resize-detector "^7.0.0"
+    zustand "^3.6.2"
 
 "@alloc/quick-lru@^5.2.0":
   version "5.2.0"
@@ -4341,6 +4372,14 @@ fast-json-stable-stringify@^2.0.0:
   resolved "https://registry.npmmirror.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz"
   integrity sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==
 
+fast-unique-numbers@^8.0.10:
+  version "8.0.10"
+  resolved "https://registry.yarnpkg.com/fast-unique-numbers/-/fast-unique-numbers-8.0.10.tgz#25eb7f6832d94b604fb74987df14c6a158b6e94b"
+  integrity sha512-NUIqIhFYSwexP73lH76CLFkqNk9wHP00mUuqo4CMdhW+ETEGaIb6meriqdXRClwOQcTx2Qj4Ctw9Axo8cSwSqw==
+  dependencies:
+    "@babel/runtime" "^7.23.2"
+    tslib "^2.6.2"
+
 fastq@^1.6.0:
   version "1.15.0"
   resolved "https://registry.npmmirror.com/fastq/-/fastq-1.15.0.tgz"
@@ -5487,7 +5526,7 @@ js-binary-schema-parser@^2.0.3:
   resolved "https://registry.yarnpkg.com/js-binary-schema-parser/-/js-binary-schema-parser-2.0.3.tgz#3d7848748e8586e63b34e8911b643f59cfb6396e"
   integrity sha512-xezGJmOb4lk/M1ZZLTR/jaBHQ4gG/lqQnJqdIv4721DMggsa1bDVlHXNeHYogaIEHD9vCRv0fcL4hMA+Coarkg==
 
-js-tokens@^4.0.0:
+"js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmmirror.com/js-tokens/-/js-tokens-4.0.0.tgz"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
@@ -5810,6 +5849,13 @@ long@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
   integrity sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
+
+loose-envify@^1.1.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
+  integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
+  dependencies:
+    js-tokens "^3.0.0 || ^4.0.0"
 
 lower-case@^1.1.1:
   version "1.1.4"
@@ -7789,6 +7835,28 @@ rc9@^2.0.1, rc9@^2.1.1:
     destr "^2.0.0"
     flat "^5.0.2"
 
+react-dom@^18.2.0:
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
+  integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
+  dependencies:
+    loose-envify "^1.1.0"
+    scheduler "^0.23.0"
+
+react-resize-detector@^7.0.0:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/react-resize-detector/-/react-resize-detector-7.1.2.tgz#8ef975dd8c3d56f9a5160ac382ef7136dcd2d86c"
+  integrity sha512-zXnPJ2m8+6oq9Nn8zsep/orts9vQv3elrpA+R8XTcW7DVVUJ9vwDwMXaBtykAYjMnkCIaOoK9vObyR7ZgFNlOw==
+  dependencies:
+    lodash "^4.17.21"
+
+react@^18.2.0:
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
+  integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
+  dependencies:
+    loose-envify "^1.1.0"
+
 read-cache@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmmirror.com/read-cache/-/read-cache-1.0.0.tgz"
@@ -8102,6 +8170,13 @@ safe-regex@^1.1.0:
   version "2.1.2"
   resolved "https://registry.npmmirror.com/safer-buffer/-/safer-buffer-2.1.2.tgz"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
+
+scheduler@^0.23.0:
+  version "0.23.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.23.0.tgz#ba8041afc3d30eb206a487b6b384002e4e61fdfe"
+  integrity sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==
+  dependencies:
+    loose-envify "^1.1.0"
 
 schema-utils@^1.0.0:
   version "1.0.0"
@@ -8951,7 +9026,7 @@ tslib@^1.9.0:
   resolved "https://registry.npmmirror.com/tslib/-/tslib-1.14.1.tgz"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.0.3, tslib@^2.3.1:
+tslib@^2.0.3, tslib@^2.3.1, tslib@^2.6.2:
   version "2.6.2"
   resolved "https://registry.npmmirror.com/tslib/-/tslib-2.6.2.tgz"
   integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==
@@ -9582,6 +9657,34 @@ worker-farm@^1.7.0:
   dependencies:
     errno "~0.1.7"
 
+worker-timers-broker@^6.0.97:
+  version "6.0.97"
+  resolved "https://registry.yarnpkg.com/worker-timers-broker/-/worker-timers-broker-6.0.97.tgz#7f91a738945ace36acb2eb47cf43efa305672d75"
+  integrity sha512-XMDYxk9IKwg1KyyWJtGwFmxvQkFLE1gzHFN1ajpN+CZlGnmsbw6pLp3qpzXhaPkmaHIcCXLfRihbIRshMdgT1A==
+  dependencies:
+    "@babel/runtime" "^7.23.2"
+    fast-unique-numbers "^8.0.10"
+    tslib "^2.6.2"
+    worker-timers-worker "^7.0.61"
+
+worker-timers-worker@^7.0.61:
+  version "7.0.61"
+  resolved "https://registry.yarnpkg.com/worker-timers-worker/-/worker-timers-worker-7.0.61.tgz#8029b87683fd732c268ba07312d4f2a8db7f6a1c"
+  integrity sha512-0ZzfJxMWefUleDZBZ+vbztW/WJ68HuMLkaBwY4VB2BHkICAZn8A5+Ziss1jBfkmEHg+lzBsOCqwK6sMbzgC5+A==
+  dependencies:
+    "@babel/runtime" "^7.23.2"
+    tslib "^2.6.2"
+
+worker-timers@^7.0.77:
+  version "7.0.77"
+  resolved "https://registry.yarnpkg.com/worker-timers/-/worker-timers-7.0.77.tgz#515a0902df2028896a1d030fad4643355190ea14"
+  integrity sha512-5YxBL1dElAtppzSyqtR1CY5qzLnjlVRWBPDXfVko1q4SlPQvgRekM167RMpz8mIh9LNlOiesQJotsgICRMVL8A==
+  dependencies:
+    "@babel/runtime" "^7.23.2"
+    tslib "^2.6.2"
+    worker-timers-broker "^6.0.97"
+    worker-timers-worker "^7.0.61"
+
 wrap-ansi@^7.0.0:
   version "7.0.0"
   resolved "https://registry.npmmirror.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz"
@@ -9701,3 +9804,8 @@ zustand@3.5.7:
   version "3.5.7"
   resolved "https://registry.npmjs.org/zustand/-/zustand-3.5.7.tgz"
   integrity sha512-DlVFXJavIHyXTOGz6dB+8QHZsPyJcGJSEBtlp2Ivmd5SwtlCnhPo3L8LB6YRfAOJC2PbqzgoD8NMjk+y+vIF0g==
+
+zustand@^3.6.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.7.2.tgz#7b44c4f4a5bfd7a8296a3957b13e1c346f42514d"
+  integrity sha512-PIJDIZKtokhof+9+60cpockVOq05sJzHCriyvaLBmEJixseQ1a5Kdov6fWZfWOu5SK9c+FhH1jU0tntLxRJYMA==
