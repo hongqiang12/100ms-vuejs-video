@@ -440,11 +440,54 @@
           <i class="el-icon-s-custom"></i>
           {{ allPeers.length }}
         </div>
-        <div
-          class="rounded-md border border-[#272a31] text-white gap-2 px-3 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+        <el-popover
+          width="256"
+          :visible-arrow="false"
+          popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
+          trigger="click"
         >
-          <SvgMore />
-        </div>
+          <div class="rounded-md bg-[#11131b]">
+            <div
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+            >
+              <SvgBRB />
+              Be Right Back
+            </div>
+            <div
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+            >
+              <SvgPIP />
+              Enable Picture-in-Picture
+            </div>
+            <div
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+            >
+              <SvgFullscreen />
+              Go Fullscreen
+            </div>
+            <div class="h-[1px] w-full my-2 bg-[#272932]"></div>
+            <div
+              @click="onSetting"
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+            >
+              <SvgSet />
+              Settings
+            </div>
+            <div
+              class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center gap-2 first:border-transparent hover:bg-[#272932] cursor-pointer"
+            >
+              <SvgStats />
+              Stats for Nerds
+            </div>
+          </div>
+
+          <div
+            slot="reference"
+            class="rounded-md border border-[#272a31] text-white gap-2 p-1 w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          >
+            <SvgMore />
+          </div>
+        </el-popover>
       </div>
     </div>
     <el-dialog
@@ -519,7 +562,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-[#191B23] p-6 relative flex-1">
+      <div class="bg-[#191B23] p-6 relative flex-1 h-[656px]">
         <div
           class="w-8 h-8 absolute top-6 right-6 rounded hover:bg-[#8f909a] flex items-center justify-center text-white cursor-pointer"
           @click="settingVisible = false"
@@ -814,6 +857,7 @@ import {
   selectLocalMediaSettings,
   HMSNotificationTypes,
   selectAudioTrackVolume,
+  selectLocalVideoTrackID,
 } from "@100mslive/hms-video-store";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 import { watch } from "vue";
@@ -1061,6 +1105,7 @@ export default {
         });
         this.getDevices();
       });
+      console.log(hmsStore.getState(selectLocalVideoTrackID))
     },
     onPeerAudioChange(isEnabled, peerId) {
       if (this.videoRefs[peerId]) {
@@ -1213,8 +1258,9 @@ export default {
       this.tabIndex = 0;
       this.$nextTick(() => {
         const element = this.$refs.dialogVideo;
-        if (this.peer) {
-          hmsActions.attachVideo(this.peer.videoTrack, element);
+        const videoTrack = hmsStore.getState(selectLocalVideoTrackID)
+        if (videoTrack) {
+          hmsActions.attachVideo(videoTrack, element);
         }
       });
     },
@@ -1222,8 +1268,9 @@ export default {
       this.tabIndex = index;
       this.$nextTick(() => {
         const element = this.$refs.dialogVideo;
-        if (this.peer) {
-          hmsActions.attachVideo(this.peer.videoTrack, element);
+        const videoTrack = hmsStore.getState(selectLocalVideoTrackID)
+        if (videoTrack) {
+          hmsActions.attachVideo(videoTrack, element);
         }
       });
     },
@@ -1303,5 +1350,11 @@ export default {
 :deep(.el-dialog__body) {
   padding: 0;
   display: flex;
+}
+:deep(.el-switch__core) {
+  border-color: #444954 !important;
+}
+:deep(.el-switch.is-checked .el-switch__core) {
+  border-color: #2572ed !important;
 }
 </style>
