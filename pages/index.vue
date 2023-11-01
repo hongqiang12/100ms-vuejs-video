@@ -37,3 +37,18 @@ export default {
   },
 };
 </script>
+<style >
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgb(101, 112, 128);
+    border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px inset;
+    background-color: transparent;
+}
+</style>

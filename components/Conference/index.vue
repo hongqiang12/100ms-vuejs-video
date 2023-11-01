@@ -297,21 +297,39 @@
                   <div class="text-sm">{{ item.senderName }}</div>
                   <div class="text-xs">{{ dateTimeFormat(item.time) }}</div>
                 </div>
-                <div class="text-white text-base">{{ item.message }}</div>
+                <div class="text-white text-sm break-words">
+                  {{ item.message }}
+                </div>
+              </div>
+              <div
+                class="w-full h-full flex items-center justify-center"
+                v-if="!messageList.length"
+              >
+                <div class="text-center">
+                  <img src="~/static/chat.svg" class="m-auto" alt="" />
+                  <p class="mt-4 text-2xl font-semibold text-[#f0f0fb]">
+                    Start a conversation
+                  </p>
+                  <p class="mt-2 text-sm text-[#c5c6d1]">
+                    There are no messages here yet. Start a conversation by
+                    sending a message.
+                  </p>
+                </div>
               </div>
             </div>
-            <div class="h-10 flex p-2 bg-[#191B23] rounded">
-              <input
-                type="text"
+            <div
+              class="min-h-[3rem] max-h-[6rem] flex py-3 pl-4 pr-2 bg-[#191B23] rounded"
+            >
+              <textarea
                 v-model="sendValue"
                 placeholder="send a message..."
-                class="h-full flex-1 outline-none bg-transparent text-white placeholder-[#565656] group-hover/item:placeholder-[#f1f1f1]"
-              />
+                class="max-h-8 flex-1 leading-4 outline-none bg-transparent resize-none text-white text-[#f0f0fb] placeholder-[#f0f0fb] group-hover/item:placeholder-[#f1f1f1]"
+              ></textarea>
               <div
-                class="w-10 flex items-center justify-center cursor-pointer rounded bg-[#ccc]"
+                class="w-8 h-8 flex items-center justify-center cursor-pointer text-white rounded hover:bg-[#8f909a]"
                 @click="onSendBroadcastMessage"
               >
-                send
+                <SvgSend />
               </div>
             </div>
           </div>
@@ -323,6 +341,15 @@
             >
               <div class="text-white">
                 {{ peer.isLocal ? `${peer.name} (You)` : peer.name }}
+              </div>
+              <div class="flex gap-2">
+                <div
+                  v-if="!peer.isLocal"
+                  class="w-7 h-7 rounded-full bg-[#272932] flex items-center justify-center text-[#C74E5B] cursor-pointer hover:bg-[#8f9099]"
+                  @click="onRomove(peer)"
+                >
+                  <SvgUserClose class="scale-80" />
+                </div>
               </div>
             </div>
           </div>
@@ -450,18 +477,26 @@
               </div>
               <div class="flex gap-4 pt-3 pb-6 px-6">
                 <div class="" @click="toggleScreenShare">
-                  <div class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer">
-                    <img src="~/static/screenshare.png" alt="">
+                  <div
+                    class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer"
+                  >
+                    <img src="~/static/screenshare.png" alt="" />
                   </div>
                   <p class="text-sm text-center font-semibold">Share Screen</p>
-                  <p class="text-[#8f909a] text-xs text-center">Share your tab, window or your entire screen</p>
+                  <p class="text-[#8f909a] text-xs text-center">
+                    Share your tab, window or your entire screen
+                  </p>
                 </div>
                 <div class="">
-                  <div class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer">
-                    <img src="~/static/pdfshare.png" alt="">
+                  <div
+                    class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer"
+                  >
+                    <img src="~/static/pdfshare.png" alt="" />
                   </div>
                   <p class="text-sm text-center font-semibold">Share PDF</p>
-                  <p class="text-[#8f909a] text-xs text-center">Annotate, draw shapes, and more over PDFs</p>
+                  <p class="text-[#8f909a] text-xs text-center">
+                    Annotate, draw shapes, and more over PDFs
+                  </p>
                 </div>
               </div>
             </div>
