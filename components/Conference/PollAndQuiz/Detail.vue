@@ -7,9 +7,7 @@
     >
       <p class="text-[#8f909a] text-xs">
         QUESTION {{ m + 1 }} OF {{ questions.length }}
-        <span v-if="question.isSave"
-          >: {{ selectLabel(question.saveObj.typeId) }}</span
-        >
+        <span v-if="question.isSave">: {{ question.saveObj.type }}</span>
       </p>
       <div v-if="question.isSave" class="text-sm font-[500]">
         <p class="text-white pt-2 pb-4">{{ question.saveObj.question }}</p>
@@ -34,11 +32,11 @@
             <div
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
               v-for="item in selectList"
-              :key="item.id"
-              :class="question.typeId == item.id ? 'bg-[#272932]' : ''"
-              @click="onSelect(item.id, question)"
+              :key="item"
+              :class="question.type == item ? 'bg-[#272932]' : ''"
+              @click="onSelect(item, question)"
             >
-              {{ item.label }}
+              {{ item }}
             </div>
           </div>
           <div
@@ -46,7 +44,7 @@
             class="py-3 px-5 flex items-center justify-between cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
           >
             <p class="text-base truncate">
-              {{ selectLabel(question.typeId) }}
+              {{ question.type }}
             </p>
             <i
               class="el-icon-arrow-down text-xl"
@@ -92,7 +90,10 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between" :class="questions.isSave?'':'mt-8'">
+      <div
+        class="flex items-center justify-between"
+        :class="question.isSave ? '' : 'mt-8'"
+      >
         <div @click="questions.splice(m, 1)">
           <SvgDelete class="text-white/70 hover:text-white cursor-pointer" />
         </div>
@@ -120,6 +121,7 @@
     <div class="flex justify-end">
       <div
         class="py-2 px-4 rounded-lg text-base font-[500] text-[#84aaff] bg-[#004399] flex items-center justify-center transition-all"
+        @click="onLaunch"
         :class="
           isLaunch
             ? 'bg-[#2572ED] text-[#ffffff] cursor-pointer hover:bg-[#538eff]'
@@ -132,19 +134,17 @@
   </div>
 </template>
 <script>
+import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
   data() {
     return {
       detailed: false,
 
-      selectList: [
-        { id: 1, label: "Single Choice" },
-        { id: 2, label: "Multiple Choice" },
-      ],
+      selectList: ["Single Choice", "Multiple Choice"],
       questions: [
         {
           question: "",
-          typeId: 1,
+          type: "single-choice",
           popoverShow: false,
           options: [
             {
@@ -158,7 +158,7 @@ export default {
           saveObj: {
             question: "",
             options: [],
-            typeId: 1,
+            type: "single-choice",
           },
         },
       ],
@@ -166,7 +166,7 @@ export default {
   },
   props: {
     typeName: String,
-    reset: Object,
+    id: String,
   },
   computed: {
     isLaunch() {
@@ -177,10 +177,43 @@ export default {
   },
   mounted() {},
   methods: {
+    async onLaunch() {
+      if (!this.isLaunch) return;
+      await hmsActions.interactivityCenter.addQuestionsToPoll(
+        this.id,
+        this.questions.map((r) => {
+          return {
+            type: r.saveObj.type,
+            text: r.saveObj.question,
+            options: r.saveObj.options.map((m) => {
+              return {
+                text: m,
+              };
+            }),
+          };
+        })
+        // [
+        //   {
+        //     type: "single-choice",
+        //     text: "How is the weather today?",
+        //     options: [
+        //       {
+        //         text: "hot",
+        //         isCorrectAnswer: true, // in case of quiz
+        //       },
+        //       { text: "warm" },
+        //       { text: "cold" },
+        //     ],
+        //   },
+        // ]
+      );
+      await hmsActions.interactivityCenter.startPoll(this.id);
+      this.$emit("onLaunch", this.id);
+    },
     onAddQuestion() {
       this.questions.push({
         question: "",
-        typeId: 1,
+        type: "single-choice",
         popoverShow: false,
         options: [
           {
@@ -194,26 +227,25 @@ export default {
         saveObj: {
           question: "",
           options: [],
-          typeId: 1,
+          type: "single-choice",
         },
       });
     },
     onSave(question) {
-      if (this.isSave(question)) {
+      if (question.isSave) {
+        question.isSave = false;
+      } else if (this.isSave(question)) {
         question.saveObj = {
           question: question.question,
           options: question.options.map((r) => r.value),
-          typeId: question.typeId,
+          type: question.type,
         };
         question.isSave = true;
       }
     },
-    onSelect(id, question) {
-      question.typeId = id;
+    onSelect(type, question) {
+      question.type = type;
       question.popoverShow = false;
-    },
-    selectLabel(typeId) {
-      return this.selectList.filter((r) => r.id == typeId)[0]?.label;
     },
     isSave(question) {
       const allLen = question.options.length;

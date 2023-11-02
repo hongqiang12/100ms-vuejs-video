@@ -72,6 +72,8 @@
   </div>
 </template>
 <script>
+import { selectLocalPeerRoleName } from "@100mslive/hms-video-store";
+import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 export default {
   data() {
     return {
@@ -84,8 +86,21 @@ export default {
   computed: {},
   mounted() {},
   methods: {
-    onCreate() {
-      this.$emit("onCreate", this.typeName, { name: this.name });
+    async onCreate() {
+      if (!this.name) return;
+      const LocalPeerRoleName = hmsStore.getState(selectLocalPeerRoleName);
+      const id = Date.now().toString();
+      await hmsActions.interactivityCenter.createPoll({
+        id,
+        title: this.name,
+        anonymous: this.anonymousChecked,
+        rolesThatCanViewResponses:
+          this.countChecked && LocalPeerRoleName
+            ? [LocalPeerRoleName]
+            : undefined,
+        type: this.typeName, // or "quiz"
+      });
+      this.$emit("onCreate", this.typeName, id);
     },
   },
 };

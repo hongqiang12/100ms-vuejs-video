@@ -1,0 +1,140 @@
+<template>
+  <div class="py-4 px-6">
+    <div class="flex justify-between items-center">
+      <p class="text-white/70 text-base font-bold">
+        {{ title }} {{ state }} a {{ typeName }}
+      </p>
+      <div
+        v-if="state == 'started'"
+        class="py-[6px] px-3 rounded-lg text-base font-[500] text-white bg-[#C74E5B] flex items-center justify-center transition-all cursor-pointer hover:bg-[#FFB2B6]"
+      >
+        End poll
+      </div>
+    </div>
+
+    <div
+      class="rounded-lg bg-[#272932] mt-4 p-4"
+      v-for="item in questions"
+      :key="item.index"
+    >
+      <p class="text-[#8f909a] text-xs">
+        QUESTION {{ item.index }} OF {{ questions.length }}: {{ item.type }}
+      </p>
+      <div class="my-4 text-base text-white">{{ item.text }}</div>
+      <div
+        class="flex items-center gap-[10px] mb-4"
+        v-for="option in item.options"
+        :key="option.index"
+      >
+        <div
+          class="w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer"
+          :class="
+            optionObj[item.index] == option.index ? 'border-[#538eff]' : 'border-white'
+          "
+          @click="onChecked(item.index, option.index, item.type)"
+        >
+          <div
+            class="w-[10px] h-[10px] rounded-full bg-[#538eff]"
+            v-if="optionObj[item.index] == option.index"
+          ></div>
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between">
+            <p class="text-white/80 text-base">{{ option.text }}</p>
+            <p class="text-white/60 text-sm">{{ option.weight }} votes</p>
+          </div>
+          <div class="h-2 rounded-lg overflow-hidden bg-[#191e27]">
+            <div
+              class="bg-[#2572ED] h-2"
+              style="transform: translateX(-100%)"
+            ></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <div
+          class="py-2 px-6 rounded-lg text-base font-[500] text-[#84aaff] bg-[#004399] flex items-center justify-center transition-all"
+          :class="
+            item.option || (item.options || []).length
+              ? 'bg-[#2572ED] text-[#ffffff] cursor-pointer hover:bg-[#538eff]'
+              : 'cursor-not-allowed'
+          "
+          @click="onVote(item)"
+        >
+          vote
+        </div>
+        <p class="text-base font-bold text-[#c5c6d1]">Voted</p>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import { selectPollByID } from "@100mslive/hms-video-store";
+import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
+export default {
+  data() {
+    return {
+      optionObj: {},
+      typeName: "",
+      title: "",
+      questions: [],
+      state: "",
+    };
+  },
+  props: {
+    id: String,
+  },
+  computed: {
+    path() {},
+  },
+  mounted() {
+    hmsStore.subscribe(this.onSelectPoll, selectPollByID(this.id));
+  },
+  methods: {
+    onSelectPoll(poll) {
+      this.typeName = poll.type;
+      this.title = poll.title;
+      this.state = poll.state;
+      this.questions = poll.questions
+      console.log(this.questions)
+    },
+    onChecked(questionIndex, index, type) {
+      if (type == "single-choice") {
+        this.$set(this.optionObj, questionIndex, index);
+      } else {
+        const List = this.optionObj[questionIndex] || [];
+        const _index = List.indexOf(index);
+        if (_index == -1) {
+          List.push(_index);
+        } else {
+          List.splice(_index, 1)
+        }
+        this.$set(this.optionObj, questionIndex, List);
+      }
+      console.log(this.optionObj)
+    },
+    async onVote(item) {
+      if (item.type == "single-choice") {
+        if (!this.optionObj[item.index]) return;
+      } else {
+        if (!this.optionObj[item.index].length) return;
+      }
+      console.log(item)
+      await hmsActions.interactivityCenter.addResponsesToPoll(this.id, [
+        item.type == "single-choice"
+          ? {
+              questionIndex: item.index, // index of the question
+              option: this.optionObj[item.index], // index of the option if it's a single-choice question
+              // options: [1, 2], // array of indices if it's a multiple-choice question
+            }
+          : {
+              questionIndex: item.index, // index of the question
+              options: this.optionObj[item.index],
+            },
+      ]);
+    },
+  },
+};
+</script>
+<style scoped>
+</style>
