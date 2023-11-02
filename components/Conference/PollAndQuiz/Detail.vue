@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 overflow-y">
+  <div class="p-6">
     <div
       class="p-4 bg-[#191B23] rounded-lg mb-3"
       v-for="(question, m) in questions"
@@ -7,11 +7,19 @@
     >
       <p class="text-[#8f909a] text-xs">
         QUESTION {{ m + 1 }} OF {{ questions.length }}
-        <span v-if="question.isSave">: {{selectLabel(question.saveObj.typeId)}}</span>
+        <span v-if="question.isSave"
+          >: {{ selectLabel(question.saveObj.typeId) }}</span
+        >
       </p>
       <div v-if="question.isSave" class="text-sm font-[500]">
-        <p class="text-white pt-2 pb-4">{{question.saveObj.question}}</p>
-        <p class="py-2 text-white/80" v-for="(item, index) in question.saveObj.options" :key="index">{{item}}</p>
+        <p class="text-white pt-2 pb-4">{{ question.saveObj.question }}</p>
+        <p
+          class="py-2 text-white/80"
+          v-for="(item, index) in question.saveObj.options"
+          :key="index"
+        >
+          {{ item }}
+        </p>
       </div>
       <div v-else>
         <p class="mt-2 mb-4 text-sm font-[500] text-white">Question Type</p>
@@ -75,14 +83,19 @@
             </div>
           </div>
         </div>
-        <div class="flex gap-2 text-white/70 hover:text-white/90  cursor-pointer">
+        <div
+          class="flex gap-2 text-white/70 hover:text-white/90 cursor-pointer"
+          @click="question.options.push({ value: '' })"
+        >
           <SvgAdd />
           <p class="text-base font-[500]">Add an option</p>
         </div>
       </div>
 
-      <div class="mt-8 flex items-center justify-between">
-        <SvgDelete class="text-white/70 hover:text-white cursor-pointer" />
+      <div class="flex items-center justify-between" :class="questions.isSave?'':'mt-8'">
+        <div @click="questions.splice(m, 1)">
+          <SvgDelete class="text-white/70 hover:text-white cursor-pointer" />
+        </div>
         <div
           class="py-2 px-4 rounded-lg text-base font-[500] text-[#8f909a] bg-[#11131b] flex items-center justify-center transition-all"
           :class="
@@ -97,7 +110,10 @@
       </div>
     </div>
 
-    <div class="flex gap-4 text-white/70 hover:text-white/90 my-3 cursor-pointer">
+    <div
+      class="flex gap-4 text-white/70 hover:text-white/90 my-3 cursor-pointer"
+      @click="onAddQuestion"
+    >
       <SvgAdd />
       <p class="text-base font-[500]">Add another question</p>
     </div>
@@ -120,7 +136,7 @@ export default {
   data() {
     return {
       detailed: false,
-      popoverShow: false,
+
       selectList: [
         { id: 1, label: "Single Choice" },
         { id: 2, label: "Multiple Choice" },
@@ -161,11 +177,32 @@ export default {
   },
   mounted() {},
   methods: {
+    onAddQuestion() {
+      this.questions.push({
+        question: "",
+        typeId: 1,
+        popoverShow: false,
+        options: [
+          {
+            value: "",
+          },
+          {
+            value: "",
+          },
+        ],
+        isSave: false,
+        saveObj: {
+          question: "",
+          options: [],
+          typeId: 1,
+        },
+      });
+    },
     onSave(question) {
       if (this.isSave(question)) {
         question.saveObj = {
           question: question.question,
-          options: question.options.map(r => r.value),
+          options: question.options.map((r) => r.value),
           typeId: question.typeId,
         };
         question.isSave = true;
@@ -183,7 +220,6 @@ export default {
       const filterLen = question.options.filter((r) => r.value).length;
       return question.question && allLen > 0 && allLen == filterLen;
     },
-
   },
 };
 </script>

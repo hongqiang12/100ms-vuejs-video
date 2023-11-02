@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-6 px-6 overflow-y">
+  <div class="pb-6 px-6">
     <p class="mb-4 text-xs text-[#c5c6d1]">
       Select the type you want to continue with
     </p>
