@@ -61,7 +61,7 @@
       <!-- </el-popover> -->
     </div>
     <div class="flex-1 px-6">
-      <div class="relative w-full h-full flex gap-2">
+      <div class="relative w-full h-full flex gap-4">
         <div class="w-[960px] h-[650px]" v-if="isSomeoneScreenSharing">
           <video
             autoplay
@@ -250,7 +250,7 @@
         </div>
         <div
           v-if="isChat || isList"
-          class="w-[25rem] p-5 relative h-[50rem] flex flex-col bg-[#11131A] rounded"
+          class="w-[25rem] p-5 relative flex flex-col bg-[#11131A] rounded"
         >
           <div class="flex mb-5 items-center gap-3">
             <div class="flex-1 p-1 flex text-[#8F9099] bg-[#191B23] rounded">
@@ -354,6 +354,7 @@
             </div>
           </div>
         </div>
+        <ConferencePollAndQuiz v-if="isPollQuiz" @onClose="isPollQuiz = false" />
       </div>
     </div>
     <div class="h-14 py-2 flex items-center justify-between px-6">
@@ -524,10 +525,22 @@
       </div>
       <div class="flex gap-4">
         <div
+          class="rounded-md border border-[#272a31] text-white gap-2 w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          @click="
+            isPollQuiz = !isPollQuiz;
+            isList = false;
+            isChat = false;
+          "
+          :class="isPollQuiz ? 'bg-[#293042]' : ''"
+        >
+          <SvgPollQuiz />
+        </div>
+        <div
           class="rounded-md border border-[#272a31] text-white gap-2 px-3 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
           @click="
             isChat = !isChat;
             isList = false;
+            isPollQuiz = false;
           "
           :class="isChat ? 'bg-[#293042]' : ''"
         >
@@ -538,6 +551,7 @@
           @click="
             isList = !isList;
             isChat = false;
+            isPollQuiz = false;
           "
           :class="isList ? 'bg-[#293042]' : ''"
         >
@@ -1010,6 +1024,7 @@ export default {
 
       isChat: false,
       isList: false,
+      isPollQuiz: false,
 
       domStyle: {},
 
