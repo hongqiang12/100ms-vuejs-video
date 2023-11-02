@@ -208,7 +208,7 @@ export default {
         // ]
       );
       await hmsActions.interactivityCenter.startPoll(this.id);
-      this.$emit("onLaunch", this.id);
+      this.$emit("onLaunch", this.typeName, this.id);
     },
     onAddQuestion() {
       this.questions.push({

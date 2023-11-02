@@ -110,8 +110,9 @@ export default {
       this.typeName = typeName;
       this.id = id;
     },
-    onLaunch(id) {
+    onLaunch(typeName, id) {
       this.isLive = true;
+      this.typeName = typeName;
       this.id = id;
     },
     onSelectPolls(polls) {
@@ -121,6 +122,7 @@ export default {
     onView(item) {
       this.isLive = true;
       this.id = item.id;
+      this.typeName = item.type;
     },
   },
 };
