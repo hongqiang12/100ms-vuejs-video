@@ -49,7 +49,7 @@
               <p class="text-white text-xl font-bold">
                 Previous Polls and Quizzes
               </p>
-              <div class="mt-4 flex gap-6 flex-col">
+              <div class="mt-4 mb-6 flex gap-6 flex-col">
                 <div
                   class="p-4 rounded-lg bg-[#272932]"
                   v-for="item in polls"

@@ -43,7 +43,7 @@
             slot="reference"
             class="py-3 px-5 flex items-center justify-between cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
           >
-            <p class="text-base truncate">
+            <p class="text-base truncate ">
               {{ question.type }}
             </p>
             <i
@@ -144,7 +144,7 @@ export default {
       questions: [
         {
           question: "",
-          type: "single-choice",
+          type: "Single Choice",
           popoverShow: false,
           options: [
             {
@@ -158,7 +158,7 @@ export default {
           saveObj: {
             question: "",
             options: [],
-            type: "single-choice",
+            type: "Single Choice",
           },
         },
       ],
@@ -183,7 +183,7 @@ export default {
         this.id,
         this.questions.map((r) => {
           return {
-            type: r.saveObj.type,
+            type: r.saveObj.type.toLowerCase().split(' ').join('-'),
             text: r.saveObj.question,
             options: r.saveObj.options.map((m) => {
               return {

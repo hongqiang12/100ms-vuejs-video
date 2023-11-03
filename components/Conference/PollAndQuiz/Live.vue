@@ -28,6 +28,7 @@
         :key="option.index"
       >
         <div
+          v-if="item.type == 'single-choice'"
           class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
           :class="[
             item.responses
@@ -51,10 +52,36 @@
             "
           ></div>
         </div>
+        <div
+          v-else
+          class="w-[18px] h-[18px] rounded bg-white overflow-hidden"
+          :class="[
+            item.responses
+              ? 'cursor-not-allowed'
+              : state == 'stopped'
+              ? 'cursor-not-allowed'
+              : 'cursor-pointer',
+          ]"
+          @click="onChecked(item, option.index)"
+        >
+          <div
+            class="bg-[#2572ED] text-white w-full h-full flex items-center justify-center"
+            v-if="
+              item.responses
+                ? getOptionIndexs(item.responses).includes(option.index)
+                : (optionObj[item.index] || []).includes(option.index)
+            "
+          >
+            <SvgCheckboxChecked />
+          </div>
+        </div>
         <div class="flex-1">
           <div class="flex justify-between">
             <p class="text-white/80 text-base">{{ option.text }}</p>
-            <p class="text-white/60 text-sm" v-if="item.responses || state == 'stopped'">
+            <p
+              class="text-white/60 text-sm"
+              v-if="item.responses || state == 'stopped'"
+            >
               {{ option.voteCount }} votes
             </p>
           </div>
@@ -135,25 +162,26 @@ export default {
         const List = this.optionObj[item.index] || [];
         const _index = List.indexOf(index);
         if (_index == -1) {
-          List.push(_index);
+          List.push(index);
         } else {
           List.splice(_index, 1);
         }
         this.$set(this.optionObj, item.index, List);
       }
+      console.log(this.optionObj);
     },
     onIsVote(item) {
       if (item.type == "single-choice") {
         return this.optionObj[item.index];
       } else {
-        return this.optionObj[item.index].length;
+        return (this.optionObj[item.index] || []).length;
       }
     },
     async onVote(item) {
       if (item.type == "single-choice") {
         if (!this.optionObj[item.index]) return;
       } else {
-        if (!this.optionObj[item.index].length) return;
+        if (!(this.optionObj[item.index] || []).length) return;
       }
       console.log(item);
       await hmsActions.interactivityCenter.addResponsesToPoll(this.id, [
@@ -176,6 +204,12 @@ export default {
     getOptionIndex(responses) {
       return responses.filter((r) => r?.peer?.peerid == this.localPeerId)[0]
         ?.option;
+    },
+    getOptionIndexs(responses) {
+      return (
+        responses.filter((r) => r?.peer?.peerid == this.localPeerId)[0]
+          ?.options || []
+      );
     },
   },
 };
