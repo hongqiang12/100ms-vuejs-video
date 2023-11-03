@@ -12,17 +12,18 @@
               class="cursor-pointer"
               @click="
                 typeName = '';
-                isLive = 'false';
+                isLive = false;
               "
             >
               <SvgBack />
             </div>
             {{ typeName }}
             <div
-              class="py-1 px-2 rounded bg-[#C74E5B] text-white text-xs flex items-center"
+              class="py-1 px-2 rounded text-white text-xs flex items-center"
+              :class="isENDED ? 'bg-[#444954]' : 'bg-[#C74E5B]'"
               v-if="isLive"
             >
-              LIVE
+              {{ isENDED ? "ENDED" : "LIVE" }}
             </div>
           </div>
           <p v-else>Polls and Quizzes</p>
@@ -39,6 +40,7 @@
           v-if="isLive"
           :typeName="typeName"
           :id="id"
+          @onStop="isENDED = true;"
         />
         <div v-else>
           <div v-if="!typeName">
@@ -96,6 +98,7 @@ export default {
       typeName: "",
       id: null,
       isLive: false,
+      isENDED: false,
       polls: [],
     };
   },
@@ -112,6 +115,7 @@ export default {
     },
     onLaunch(typeName, id) {
       this.isLive = true;
+      this.isENDED = false;
       this.typeName = typeName;
       this.id = id;
     },
@@ -121,6 +125,7 @@ export default {
     },
     onView(item) {
       this.isLive = true;
+      this.isENDED = false;
       this.id = item.id;
       this.typeName = item.type;
     },

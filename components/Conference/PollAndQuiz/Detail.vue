@@ -5,7 +5,7 @@
       v-for="(question, m) in questions"
       :key="m"
     >
-      <p class="text-[#8f909a] text-xs">
+      <p class="text-[#8f909a] text-xs uppercase">
         QUESTION {{ m + 1 }} OF {{ questions.length }}
         <span v-if="question.isSave">: {{ question.saveObj.type }}</span>
       </p>

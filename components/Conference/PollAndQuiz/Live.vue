@@ -2,11 +2,12 @@
   <div class="py-4 px-6">
     <div class="flex justify-between items-center">
       <p class="text-white/70 text-base font-bold">
-        {{ title }} {{ state }} a {{ typeName }}
+        {{ title }} started a {{ typeName }}
       </p>
       <div
-        v-if="state == 'started'"
+        v-if="isLocal && state == 'started'"
         class="py-[6px] px-3 rounded-lg text-base font-[500] text-white bg-[#C74E5B] flex items-center justify-center transition-all cursor-pointer hover:bg-[#FFB2B6]"
+        @click="onStopPoll"
       >
         End poll
       </div>
@@ -17,7 +18,7 @@
       v-for="item in questions"
       :key="item.index"
     >
-      <p class="text-[#8f909a] text-xs">
+      <p class="text-[#8f909a] text-xs uppercase">
         QUESTION {{ item.index }} OF {{ questions.length }}: {{ item.type }}
       </p>
       <div class="my-4 text-base text-white">{{ item.text }}</div>
@@ -100,6 +101,7 @@ export default {
       questions: [],
       state: "",
       localPeerId: hmsStore.getState(selectLocalPeerID),
+      isLocal: false,
     };
   },
   props: {
@@ -115,6 +117,7 @@ export default {
   methods: {
     onSelectPoll(poll) {
       console.log(poll);
+      this.isLocal = poll.startedBy == this.localPeerId;
       this.typeName = poll.type;
       this.title = poll.title;
       this.state = poll.state;
@@ -162,6 +165,10 @@ export default {
               options: this.optionObj[item.index],
             },
       ]);
+    },
+    async onStopPoll() {
+      await hmsActions.interactivityCenter.stopPoll(this.id);
+      this.$emit("onStop");
     },
     getOptionIndex(responses) {
       return responses.filter((r) => r?.peer?.peerid == this.localPeerId)[0]
