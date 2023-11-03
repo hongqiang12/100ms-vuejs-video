@@ -28,15 +28,17 @@
         :key="option.index"
       >
         <div
-          class="w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer"
+          class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
           :class="[
             item.responses
               ? getOptionIndex(item.responses) == option.index
                 ? 'border-[#538eff] cursor-not-allowed'
                 : 'cursor-not-allowed'
+              : state == 'stopped'
+              ? 'cursor-not-allowed'
               : optionObj[item.index] == option.index
-              ? 'border-[#538eff]'
-              : 'border-white',
+              ? 'border-[#538eff] cursor-pointer'
+              : 'border-white cursor-pointer',
           ]"
           @click="onChecked(item, option.index)"
         >
@@ -52,7 +54,7 @@
         <div class="flex-1">
           <div class="flex justify-between">
             <p class="text-white/80 text-base">{{ option.text }}</p>
-            <p class="text-white/60 text-sm" v-if="item.responses">
+            <p class="text-white/60 text-sm" v-if="item.responses || state == 'stopped'">
               {{ option.voteCount }} votes
             </p>
           </div>
@@ -71,7 +73,7 @@
           </div>
         </div>
       </div>
-      <div class="flex justify-end">
+      <div class="flex justify-end" v-if="state !== 'stopped'">
         <div
           v-if="!item.responses"
           class="py-2 px-6 rounded-lg text-base font-[500] text-[#84aaff] bg-[#004399] flex items-center justify-center transition-all"
@@ -126,6 +128,7 @@ export default {
     },
     onChecked(item, index) {
       if (item.responses) return;
+      if (this.state == "stopped") return;
       if (item.type == "single-choice") {
         this.$set(this.optionObj, item.index, index);
       } else {

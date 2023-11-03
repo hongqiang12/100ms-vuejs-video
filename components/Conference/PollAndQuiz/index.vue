@@ -40,7 +40,7 @@
           v-if="isLive"
           :typeName="typeName"
           :id="id"
-          @onStop="isENDED = true;"
+          @onStop="isENDED = true"
         />
         <div v-else>
           <div v-if="!typeName">
@@ -60,9 +60,14 @@
                       {{ item.title }}
                     </p>
                     <div
-                      class="py-1 px-2 rounded bg-[#C74E5B] text-white text-xs flex items-center"
+                      class="py-1 px-2 rounded text-white text-xs flex items-center"
+                      :class="
+                        item.state == 'started'
+                          ? 'bg-[#C74E5B]'
+                          : 'bg-[#444954]'
+                      "
                     >
-                      LIVE
+                      {{ item.state == "started" ? "LIVE" : "ENDED" }}
                     </div>
                   </div>
                   <div class="flex justify-end">
@@ -120,12 +125,12 @@ export default {
       this.id = id;
     },
     onSelectPolls(polls) {
-      this.polls = polls;
+      this.polls = polls.filter((r) => r.state != "created");
       console.log(polls);
     },
     onView(item) {
       this.isLive = true;
-      this.isENDED = false;
+      this.isENDED = item.state == "stopped";
       this.id = item.id;
       this.typeName = item.type;
     },
