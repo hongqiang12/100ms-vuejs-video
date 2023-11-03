@@ -163,18 +163,15 @@ export default {
     path() {},
   },
   mounted() {
-    console.log(this.localPeerId);
     hmsStore.subscribe(this.onSelectPoll, selectPollByID(this.id));
   },
   methods: {
     onSelectPoll(poll) {
-      console.log(poll);
       this.isLocal = poll.startedBy == this.localPeerId;
       this.typeName = poll.type;
       this.title = poll.title;
       this.state = poll.state;
       this.questions = poll.questions;
-      console.log(this.questions);
     },
     onChecked(item, index) {
       if (this.isLocalPeer(item)) return;
@@ -213,7 +210,6 @@ export default {
       } else {
         if (!(this.optionObj[item.index] || []).length) return;
       }
-      console.log(item);
       await hmsActions.interactivityCenter.addResponsesToPoll(this.id, [
         item.type == "single-choice"
           ? {

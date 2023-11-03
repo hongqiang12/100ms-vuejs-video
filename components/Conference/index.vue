@@ -126,13 +126,21 @@
                 class="text-xl el-icon-turn-off-microphone text-white"
               ></i>
             </div>
-            <p
-              class="flex justify-center items-center py-1 px-2 text-sm font-medium bg-black bg-opacity-80 text-white pointer-events-none absolute left-1 bottom-1 rounded-lg left-0"
+            <div
+              class="flex justify-center items-center gap-2 py-1 px-2 text-sm font-medium bg-black bg-opacity-80 text-white pointer-events-none absolute left-1 bottom-1 rounded-lg left-0"
             >
-              <span class="inline-block">
-                {{ peer.isLocal ? `You (${peer.name})` : peer.name }}</span
+              <div>
+                {{ peer.isLocal ? `You (${peer.name})` : peer.name }}
+              </div>
+              <div
+                v-if="
+                  downlinkQualityObj[peer.id] !== -1 &&
+                  downlinkQualityObj[peer.id] !== undefined
+                "
               >
-            </p>
+                <SvgSignal :downlinkQuality="downlinkQualityObj[peer.id]" />
+              </div>
+            </div>
 
             <p
               class="text-white text-center absolute top-1/2 right-0 left-0"
@@ -344,8 +352,29 @@
               </div>
               <div class="flex gap-2">
                 <div
+                  v-if="
+                    downlinkQualityObj[peer.id] !== -1 &&
+                    downlinkQualityObj[peer.id] !== undefined
+                  "
+                  class="w-7 h-7 rounded-full bg-[#272932] flex items-center justify-center"
+                >
+                  <SvgSignal :downlinkQuality="downlinkQualityObj[peer.id]" />
+                </div>
+                <div
+                  v-if="
+                    (peer.isLocal && !isAudioEnabled) ||
+                    (!peer.isLocal &&
+                      !remotePeerProps?.[peer.id]?.[MediaState.isAudioEnabled])
+                  "
+                  class="w-7 h-7 rounded-full bg-[#272932] flex items-center justify-center"
+                >
+                  <div class="scale-[0.8] text-white">
+                    <SvgUnAudio />
+                  </div>
+                </div>
+                <div
                   v-if="!peer.isLocal"
-                  class="w-7 h-7 rounded-full bg-[#272932] flex items-center justify-center text-[#C74E5B] cursor-pointer hover:bg-[#8f9099]"
+                  class="w-7 h-7 rounded-full bg-[#272932] flex items-center justify-center text-[#C74E5B] hidden cursor-pointer hover:block hover:bg-[#8f9099]"
                   @click="onRomove(peer)"
                 >
                   <SvgUserClose class="scale-80" />
@@ -354,7 +383,10 @@
             </div>
           </div>
         </div>
-        <ConferencePollAndQuiz v-if="isPollQuiz" @onClose="isPollQuiz = false" />
+        <ConferencePollAndQuiz
+          v-if="isPollQuiz"
+          @onClose="isPollQuiz = false"
+        />
       </div>
     </div>
     <div class="h-14 py-2 flex items-center justify-between px-6">
@@ -988,6 +1020,7 @@ import {
   selectLocalPeerID,
   selectHasPeerHandRaised,
   selectPeerMetadata,
+  selectConnectionQualityByPeerID,
 } from "@100mslive/hms-video-store";
 import { selectTracksMap } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -1011,6 +1044,7 @@ export default {
       },
       audioLevelObj: {},
       volumeObj: {},
+      downlinkQualityObj: {},
 
       sendValue: "",
       messageList: [],
@@ -1090,6 +1124,7 @@ export default {
   mounted() {
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
     this.virtualBackground.init();
+    // this.onNotification();
     // this.onInit();
     hmsStore.subscribe(this.renderPeers, selectPeers);
     hmsStore.subscribe(this.onAudioChange, selectIsLocalAudioEnabled);
@@ -1246,10 +1281,19 @@ export default {
               (audioLevel) => this.onPeerAudioLevelChange(audioLevel, peer.id),
               selectPeerAudioByID(peer.id)
             );
+            hmsStore.subscribe(
+              (connectionQuality) =>
+                this.onChangeConnectionQuality(connectionQuality, peer.id),
+              selectConnectionQualityByPeerID(peer.id)
+            );
           }
         });
         this.getDevices();
       });
+    },
+    async onChangeConnectionQuality(connectionQuality, peerId) {
+      const downlinkQuality = connectionQuality?.downlinkQuality;
+      this.$set(this.downlinkQualityObj, peerId, downlinkQuality);
     },
     onPeerAudioChange(isEnabled, peerId) {
       if (this.videoRefs[peerId]) {
@@ -1498,8 +1542,8 @@ export default {
 
     onNotification() {
       const unsubscribe = hmsNotifications.onNotification((notification) => {
-        // console.log("notification type", notification.type);
-        // console.log("data", notification.data);
+        console.log("notification type", notification.type);
+        console.log("data", notification.data);
 
         // you can use the following to show appropriate toast notifications for eg.
         switch (notification.type) {
