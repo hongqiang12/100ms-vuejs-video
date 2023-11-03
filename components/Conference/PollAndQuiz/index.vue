@@ -7,7 +7,7 @@
         class="py-4 px-6 mb-4 flex items-center justify-between border-b border-[#272932]"
       >
         <div class="text-white text-xl font-bold">
-          <div class="flex gap-4" v-if="typeName">
+          <div class="flex gap-4 uppercase" v-if="typeName">
             <div
               class="cursor-pointer"
               @click="

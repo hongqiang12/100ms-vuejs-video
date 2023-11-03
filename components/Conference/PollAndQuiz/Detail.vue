@@ -11,13 +11,16 @@
       </p>
       <div v-if="question.isSave" class="text-sm font-[500]">
         <p class="text-white pt-2 pb-4">{{ question.saveObj.question }}</p>
-        <p
-          class="py-2 text-white/80"
+        <div
+          class="py-2 text-white/80 flex items-center gap-2"
           v-for="(item, index) in question.saveObj.options"
           :key="index"
         >
-          {{ item }}
-        </p>
+          {{ item.text }}
+          <div class="text-[#36B37E] flex items-center justify-center" v-if="item.isCorrectAnswer">
+            <SvgOptionChecked />
+          </div>
+        </div>
       </div>
       <div v-else>
         <p class="mt-2 mb-4 text-sm font-[500] text-white">Question Type</p>
@@ -43,7 +46,7 @@
             slot="reference"
             class="py-3 px-5 flex items-center justify-between cursor-pointer bg-[#272932] rounded-lg text-[#f0f0fb]"
           >
-            <p class="text-base truncate ">
+            <p class="text-base truncate">
               {{ question.type }}
             </p>
             <i
@@ -67,6 +70,35 @@
             v-for="(item, index) in question.options"
             :key="index"
           >
+            <div v-if="typeName == 'quiz'">
+              <div
+                v-if="question.type == 'Single Choice'"
+                class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                :class="[
+                  question.index == index
+                    ? 'border-[#538eff] cursor-pointer'
+                    : 'border-white cursor-pointer',
+                ]"
+                @click="onChecked(question, index)"
+              >
+                <div
+                  class="w-[10px] h-[10px] rounded-full bg-[#538eff]"
+                  v-if="question.index == index"
+                ></div>
+              </div>
+              <div
+                v-else
+                class="w-[18px] h-[18px] cursor-pointer rounded bg-white overflow-hidden"
+                @click="onChecked(question, index)"
+              >
+                <div
+                  class="bg-[#2572ED] text-white w-full h-full flex items-center justify-center"
+                  v-if="(question.indexs || []).includes(index)"
+                >
+                  <SvgCheckboxChecked />
+                </div>
+              </div>
+            </div>
             <input
               type="text"
               :placeholder="`Option ${index + 1}`"
@@ -87,6 +119,15 @@
         >
           <SvgAdd />
           <p class="text-base font-[500]">Add an option</p>
+        </div>
+        <div v-if="typeName == 'quiz'" class="flex gap-2 text-white/70 mt-4">
+          <el-switch
+            v-model="question.skippable"
+            inactive-color="#191b23"
+            active-color="#2572ED"
+          >
+          </el-switch>
+          <p class="text-sm">Not required to answer</p>
         </div>
       </div>
 
@@ -146,6 +187,9 @@ export default {
           question: "",
           type: "Single Choice",
           popoverShow: false,
+          skippable: false,
+          index: null,
+          indexs: [],
           options: [
             {
               value: "",
@@ -158,6 +202,7 @@ export default {
           saveObj: {
             question: "",
             options: [],
+            skippable: false,
             type: "Single Choice",
           },
         },
@@ -179,17 +224,15 @@ export default {
   methods: {
     async onLaunch() {
       if (!this.isLaunch) return;
+      console.log(this.questions);
       await hmsActions.interactivityCenter.addQuestionsToPoll(
         this.id,
         this.questions.map((r) => {
           return {
-            type: r.saveObj.type.toLowerCase().split(' ').join('-'),
+            type: r.saveObj.type.toLowerCase().split(" ").join("-"),
             text: r.saveObj.question,
-            options: r.saveObj.options.map((m) => {
-              return {
-                text: m,
-              };
-            }),
+            skippable: r.saveObj.skippable,
+            options: r.saveObj.options,
           };
         })
         // [
@@ -213,8 +256,11 @@ export default {
     onAddQuestion() {
       this.questions.push({
         question: "",
-        type: "single-choice",
+        type: "Single Choice",
         popoverShow: false,
+        skippable: false,
+        index: null,
+        indexs: [],
         options: [
           {
             value: "",
@@ -227,7 +273,8 @@ export default {
         saveObj: {
           question: "",
           options: [],
-          type: "single-choice",
+          type: "Single Choice",
+          skippable: false,
         },
       });
     },
@@ -237,10 +284,55 @@ export default {
       } else if (this.isSave(question)) {
         question.saveObj = {
           question: question.question,
-          options: question.options.map((r) => r.value),
+          options: question.options.map((r, index) => {
+            if (this.typeName == "quiz") {
+              if (question.type == "Single Choice") {
+                if (question.index == index) {
+                  return {
+                    text: r.value,
+                    isCorrectAnswer: true,
+                  };
+                } else {
+                  return {
+                    text: r.value,
+                  };
+                }
+              } else {
+                if (question.indexs.includes(index)) {
+                  return {
+                    text: r.value,
+                    isCorrectAnswer: true,
+                  };
+                } else {
+                  return {
+                    text: r.value,
+                  };
+                }
+              }
+            } else {
+              return {
+                text: r.value,
+              };
+            }
+          }),
           type: question.type,
+          skippable: question.skippable,
         };
         question.isSave = true;
+      }
+    },
+    onChecked(item, index) {
+      if (item.type == "Single Choice") {
+        item.index = index;
+      } else {
+        const List = item.indexs || [];
+        const _index = List.indexOf(index);
+        if (_index == -1) {
+          List.push(index);
+        } else {
+          List.splice(_index, 1);
+        }
+        item.indexs = List;
       }
     },
     onSelect(type, question) {
@@ -250,10 +342,25 @@ export default {
     isSave(question) {
       const allLen = question.options.length;
       const filterLen = question.options.filter((r) => r.value).length;
-      return question.question && allLen > 0 && allLen == filterLen;
+      let lock = true;
+      if (this.typeName == "quiz") {
+        if (question.type == "Single Choice") {
+          lock = question.index !== null;
+        } else {
+          lock = question.indexs.length > 0;
+        }
+      }
+
+      return question.question && allLen > 0 && allLen == filterLen && lock;
     },
   },
 };
 </script>
 <style scoped>
+:deep(.el-switch__core) {
+  border-color: #444954 !important;
+}
+:deep(.el-switch.is-checked .el-switch__core) {
+  border-color: #2572ed !important;
+}
 </style>

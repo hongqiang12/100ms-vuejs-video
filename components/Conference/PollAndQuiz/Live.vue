@@ -14,7 +14,8 @@
     </div>
 
     <div
-      class="rounded-lg bg-[#272932] mt-4 p-4"
+      class="rounded-lg bg-[#272932] mt-4 p-4 border"
+      :class="isCorrectLocalStyle(item)"
       v-for="item in questions"
       :key="item.index"
     >
@@ -31,7 +32,7 @@
           v-if="item.type == 'single-choice'"
           class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
           :class="[
-            item.responses
+            isLocalPeer(item)
               ? getOptionIndex(item.responses) == option.index
                 ? 'border-[#538eff] cursor-not-allowed'
                 : 'cursor-not-allowed'
@@ -46,7 +47,7 @@
           <div
             class="w-[10px] h-[10px] rounded-full bg-[#538eff]"
             v-if="
-              item.responses
+              isLocalPeer(item)
                 ? getOptionIndex(item.responses) == option.index
                 : optionObj[item.index] == option.index
             "
@@ -56,7 +57,7 @@
           v-else
           class="w-[18px] h-[18px] rounded bg-white overflow-hidden"
           :class="[
-            item.responses
+            isLocalPeer(item)
               ? 'cursor-not-allowed'
               : state == 'stopped'
               ? 'cursor-not-allowed'
@@ -67,7 +68,7 @@
           <div
             class="bg-[#2572ED] text-white w-full h-full flex items-center justify-center"
             v-if="
-              item.responses
+              isLocalPeer(item)
                 ? getOptionIndexs(item.responses).includes(option.index)
                 : (optionObj[item.index] || []).includes(option.index)
             "
@@ -78,16 +79,29 @@
         <div class="flex-1">
           <div class="flex justify-between">
             <p class="text-white/80 text-base">{{ option.text }}</p>
-            <p
-              class="text-white/60 text-sm"
-              v-if="item.responses || state == 'stopped'"
+            <div
+              class="text-white/60 text-sm flex items-center"
+              v-if="isLocalPeer(item) || state == 'stopped'"
             >
+              <div
+                class="p-1 mr-1 rounded-lg border text-xs"
+                v-if="typeName == 'quiz'"
+                :class="
+                  isCorrectStyle(item, option.index)
+                    ? 'text-[#36B37E] border-[#36B37E]'
+                    : 'text-[#C74E5B] border-[#C74E5B]'
+                "
+              >
+                {{
+                  isCorrectStyle(item, option.index) ? "Correct" : "Incorrect"
+                }}
+              </div>
               {{ option.voteCount }} votes
-            </p>
+            </div>
           </div>
           <div
             class="h-2 rounded-lg overflow-hidden bg-[#191e27]"
-            v-if="item.responses"
+            v-if="isLocalPeer(item)"
           >
             <div
               class="bg-[#2572ED] h-2"
@@ -100,9 +114,16 @@
           </div>
         </div>
       </div>
-      <div class="flex justify-end" v-if="state !== 'stopped'">
+      <div class="flex justify-end gap-2" v-if="state !== 'stopped'">
         <div
-          v-if="!item.responses"
+          v-if="item.skippable && !isLocalPeer(item)"
+          class="py-2 px-6 rounded-lg text-base font-[500] text-[#ffffff] bg-[#2e3038] cursor-pointer hover:bg-[#272932] flex items-center justify-center transition-all"
+          @click="onSkipped(item)"
+        >
+          Skip
+        </div>
+        <div
+          v-if="!isLocalPeer(item)"
           class="py-2 px-6 rounded-lg text-base font-[500] text-[#84aaff] bg-[#004399] flex items-center justify-center transition-all"
           :class="
             onIsVote(item)
@@ -111,9 +132,11 @@
           "
           @click="onVote(item)"
         >
-          vote
+          Vote
         </div>
-        <p class="text-base font-bold text-[#c5c6d1]" v-else>Voted</p>
+        <p class="text-base font-bold text-[#c5c6d1]" v-else>
+          {{ isAnswerType(item) ? "Voted" : "Skipped" }}
+        </p>
       </div>
     </div>
   </div>
@@ -154,7 +177,7 @@ export default {
       console.log(this.questions);
     },
     onChecked(item, index) {
-      if (item.responses) return;
+      if (this.isLocalPeer(item)) return;
       if (this.state == "stopped") return;
       if (item.type == "single-choice") {
         this.$set(this.optionObj, item.index, index);
@@ -168,7 +191,6 @@ export default {
         }
         this.$set(this.optionObj, item.index, List);
       }
-      console.log(this.optionObj);
     },
     onIsVote(item) {
       if (item.type == "single-choice") {
@@ -176,6 +198,14 @@ export default {
       } else {
         return (this.optionObj[item.index] || []).length;
       }
+    },
+    async onSkipped(item) {
+      await hmsActions.interactivityCenter.addResponsesToPoll(this.id, [
+        {
+          questionIndex: item.index, // index of the question
+          skippable: true,
+        },
+      ]);
     },
     async onVote(item) {
       if (item.type == "single-choice") {
@@ -210,6 +240,60 @@ export default {
         responses.filter((r) => r?.peer?.peerid == this.localPeerId)[0]
           ?.options || []
       );
+    },
+    isAnswerType(item) {
+      if (!item.responses) return false;
+      const LocalPeer = item.responses.filter(
+        (r) => r.peer.peerid == this.localPeerId
+      )[0];
+      if (item.type == "single-choice") {
+        let option = LocalPeer.option;
+        return option > 0;
+      } else {
+        let options = LocalPeer.options;
+        return !!options && options.length > 0;
+      }
+    },
+    isLocalPeer(item) {
+      if (!item.responses) return false;
+      const LocalPeer = item.responses.filter(
+        (r) => r.peer.peerid == this.localPeerId
+      )[0];
+      return !!LocalPeer;
+    },
+    isCorrectStyle(item, index) {
+      if (item.type == "single-choice") {
+        return item.answer.option == index;
+      } else {
+        return item.answer.options.includes(index);
+      }
+    },
+    isCorrectLocalStyle(item) {
+      if (!item.responses) return "border-transparent";
+      const LocalPeer = item.responses.filter(
+        (r) => r.peer.peerid == this.localPeerId
+      )[0];
+      if (!LocalPeer) return "border-transparent";
+      if (item.type == "single-choice") {
+        let option = LocalPeer.option;
+        if (option == -1) return "border-transparent";
+        return option == item.answer.option
+          ? "border-[#36B37E]"
+          : "border-[#C74E5B]";
+      } else {
+        let options = LocalPeer.options || [];
+        if (!options.length) return "border-transparent";
+        let lock = true;
+        item.answer.options.map((r) => {
+          if (!options.includes(r)) {
+            lock = false;
+          }
+        });
+
+        return lock && options.length == item.answer.options.length
+          ? "border-[#36B37E]"
+          : "border-[#C74E5B]";
+      }
     },
   },
 };
