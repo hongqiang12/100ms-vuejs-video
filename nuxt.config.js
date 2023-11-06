@@ -43,6 +43,12 @@ export default {
   build: {
     transpile: [/^element-ui/],
   },
+  router: {
+    base: "/100ms-vuejs-video",
+  },
+  generate: {
+    dir: "docs",
+  },
   nitro: {
     devProxy: {
       "/api/v1": {

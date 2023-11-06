@@ -126,6 +126,19 @@
               <SvgPicture />
             </div>
           </div>
+          <div
+            v-if="isVideoEnabled"
+            class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+            :class="isGrayscaleBackgroundEnabled ? 'bg-[#293042]' : ''"
+            title="Custom grayscale video plugin"
+          >
+            <div
+              class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+              @click="toggleGB"
+            >
+              <SvgGrayscale />
+            </div>
+          </div>
         </div>
         <div
           class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
@@ -469,6 +482,8 @@ import {
   HMSVirtualBackgroundTypes,
 } from "@100mslive/hms-virtual-background";
 
+import { GrayscalePlugin } from "~/plugins/grayscale";
+
 import {
   selectLocalPeer,
   selectIsLocalAudioEnabled,
@@ -495,6 +510,9 @@ export default {
       isVideoEnabled: hmsStore.getState(selectIsLocalVideoEnabled),
       virtualBackground: null,
       isVirtualBackgroundEnabled: false,
+
+      grayscaleBackground: null,
+      isGrayscaleBackgroundEnabled: false,
 
       peer: null,
       audioLevel: 0,
@@ -544,6 +562,7 @@ export default {
     this.onInit();
     // console.log(HMSNotificationTypes);
     this.onNotification();
+    this.grayscaleBackground = new GrayscalePlugin();
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
     this.virtualBackground.init();
     // this.changeBackground();
@@ -654,6 +673,30 @@ export default {
         this.isVirtualBackgroundEnabled = !isVirtualBackgroundEnabled;
       } catch (error) {
         console.log("failed to set virtual background -", error);
+      }
+    },
+    async toggleGB() {
+      const isGrayscaleBackgroundEnabled = hmsStore.getState(
+        selectIsLocalVideoPluginPresent(this.grayscaleBackground.getName())
+      );
+      console.log(isGrayscaleBackgroundEnabled)
+      this.isGrayscaleBackgroundEnabled = isGrayscaleBackgroundEnabled;
+      try {
+        if (!isGrayscaleBackgroundEnabled) {
+          // Recommended value
+          const pluginFrameRate = 15;
+          // add virtual background
+          await hmsActions.addPluginToVideoTrack(
+            this.grayscaleBackground,
+            pluginFrameRate
+          );
+        } else {
+          // remove virtual background
+          await hmsActions.removePluginFromVideoTrack(this.grayscaleBackground);
+        }
+        this.isGrayscaleBackgroundEnabled = !isGrayscaleBackgroundEnabled;
+      } catch (error) {
+        console.log("failed to set grayscale background -", error);
       }
     },
     updateAudioLevel(audioLevel) {
