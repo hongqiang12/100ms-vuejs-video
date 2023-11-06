@@ -70,6 +70,16 @@
             ref="screenSharing"
           ></video>
         </div>
+        <!-- <div class="w-[890px] h-[600px]">
+          <iframe
+            :ref="iframeRef"
+            style="{ width: '100%', height: '100%',
+          border: 0, borderRadius: '0.75rem', }"
+            allow="autoplay;
+          clipboard-write;"
+            referrerPolicy="no-referrer"
+          />
+        </div> -->
         <div
           ref="content"
           class="flex-1 flex-wrap place-content-center flex items-center justify-center gap-2"
@@ -534,7 +544,13 @@
                     Share your tab, window or your entire screen
                   </p>
                 </div>
-                <div class="">
+                <div
+                  class=""
+                  @click="
+                    pdfVisible = true;
+                    screenShareVisible = false;
+                  "
+                >
                   <div
                     class="pt-3 px-3 rounded-xl bg-[#2e3038] mb-3 hover:bg-[#8f909a] cursor-pointer"
                   >
@@ -998,6 +1014,78 @@
         </div>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="pdfVisible"
+      width="420px"
+      :show-close="false"
+      @close="pdfFile = null"
+      custom-class="rounded-xl !bg-transparent"
+    >
+      <div class="bg-[#11131b] p-6 rounded-xl w-full">
+        <p class="text-xl font-semibold text-white">Share PDF</p>
+        <div class="text-white/80 mb-3 text-sm">
+          Choose PDF you want to annotate and share
+        </div>
+        <div
+          v-if="!pdfFile"
+          class="my-3 relative py-8 h-[9.5rem] text-white rounded-lg border border-dashed border-[#272932] overflow-hidden flex flex-col items-center justify-center cursor-pointer"
+        >
+          <SvgUpload />
+          <p class="text-base text-white underline">Click to upload</p>
+          <input
+            type="file"
+            ref="file"
+            accept=".pdf"
+            @change="uploadPDF"
+            class="absolute inset-0 opacity-0 z-10 cursor-pointer"
+          />
+        </div>
+
+        <div
+          v-if="pdfFile"
+          class="mt-3 py-2 px-3 rounded-lg bg-[#272932] flex items-center justify-between"
+        >
+          <p class="text-base text-white max-w-[88%]">{{ pdfFile?.name }}</p>
+          <div class="cursor-pointer text-white" @click="pdfFile = null">
+            <SvgDelete />
+          </div>
+        </div>
+
+        <div
+          v-if="pdfFile"
+          class="py-[6px] px-4 my-6 flex items-center gap-2 text-white/80 rounded-lg border border-[#272932]"
+        >
+          <SvgInfo />
+          <p class="text-xs">
+            On the next screen, ensure you select “This Tab” and click on share.
+            Only the PDF viewer will be seen by other participants
+          </p>
+        </div>
+
+        <div class="flex gap-4 mt-4">
+          <div
+            @click="
+              pdfVisible = false;
+              pdfFile = null;
+            "
+            class="flex-1 py-2 px-4 rounded-lg text-base font-[500] border border-[#444954] hover:border-[#5c616c] text-white cursor-pointer bg-transparent flex items-center justify-center transition-all"
+          >
+            Cancel
+          </div>
+          <div
+            class="flex-1 py-2 px-4 rounded-lg text-base font-[500] text-[#84aaff] bg-[#004399] flex items-center justify-center transition-all"
+            @click="onShare"
+            :class="
+              pdfFile
+                ? 'bg-[#2572ED] text-[#ffffff] cursor-pointer hover:bg-[#538eff]'
+                : 'cursor-not-allowed'
+            "
+          >
+            Start Sharing
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -1037,8 +1125,9 @@ import {
   selectPeerMetadata,
   selectConnectionQualityByPeerID,
   selectIsLocalAudioPluginPresent,
+  selectAppData,
 } from "@100mslive/hms-video-store";
-import { selectTracksMap } from "@100mslive/react-sdk";
+import { selectTracksMap, usePDFShare } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
 import { watch } from "vue";
 export default {
@@ -1107,6 +1196,11 @@ export default {
       isFullscreen: false,
 
       isHandRaised: false,
+
+      // pdf sharing
+      pdfVisible: false,
+      pdfFile: null,
+      iframeRef: null,
     };
   },
   computed: {
@@ -1645,6 +1739,32 @@ export default {
     },
     onJSONParse(string) {
       return JSON.parse(string) || {};
+    },
+
+    // pdf sharing
+    uploadPDF(event) {
+      const file = event.target.files[0];
+      console.log(file);
+      if (!file.type.includes("pdf")) {
+        return this.$message.error("Please upload the file in pdf format");
+      }
+      this.pdfFile = file;
+      // hmsActions.setAppData("pdfConfig", file);
+    },
+    onShare() {
+      hmsActions.setAppData("pdfConfig", this.pdfFile);
+      const value = hmsStore.getState(selectAppData("pdfConfig"))
+      console.log(value)
+      // this.pdfFile = null;
+      this.pdfVisible = false;
+      const { iframeRef, startPDFShare, stopPDFShare, isPDFSharingInProgress } =
+        usePDFShare();
+      //   this.iframeRef = iframeRef;
+        console.log(iframeRef);
+    },
+    resetConfig() {
+      const value = hmsStore.getState(selectAppData("pdfConfig"))
+      hmsActions.setAppData("pdfConfig", value);
     },
   },
 };
