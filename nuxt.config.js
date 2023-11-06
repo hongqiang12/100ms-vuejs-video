@@ -43,6 +43,14 @@ export default {
   build: {
     transpile: [/^element-ui/],
   },
+
+  router: {
+    base: '/nuxt-blog'
+  },
+  generate: {
+    dir: "docs",
+    subFolders: false
+  },
   nitro: {
     devProxy: {
       "/api/v1": {
