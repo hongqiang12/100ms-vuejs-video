@@ -473,6 +473,7 @@
         </div>
 
         <div
+          v-if="isVideoEnabled"
           class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
           :class="isVirtualBackgroundEnabled ? 'bg-[#293042]' : ''"
         >
@@ -481,6 +482,19 @@
             @click="toggleVB"
           >
             <SvgPicture />
+          </div>
+        </div>
+        <div
+          v-if="isAudioEnabled"
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+          :class="isFrequencyAudioEnabled ? 'bg-[#293042]' : ''"
+          title="Custom gain audio plugin"
+        >
+          <div
+            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleFA"
+          >
+            <SvgFrequency />
           </div>
         </div>
       </div>
@@ -987,6 +1001,7 @@
   </div>
 </template>
 <script>
+import { GainPlugin } from "~/plugins/HMSAudioPlugin";
 import { PictureInPicture } from "../PIP/PIPManager";
 import { MediaSession } from "../PIP/SetupMediaSession";
 import { HMSVirtualBackgroundPlugin } from "@100mslive/hms-virtual-background";
@@ -1021,6 +1036,7 @@ import {
   selectHasPeerHandRaised,
   selectPeerMetadata,
   selectConnectionQualityByPeerID,
+  selectIsLocalAudioPluginPresent,
 } from "@100mslive/hms-video-store";
 import { selectTracksMap } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -1055,6 +1071,9 @@ export default {
       virtualBackground: null,
       isVirtualBackgroundEnabled: false,
       isSomeoneScreenSharing: false,
+
+      frequencyAudio: null,
+      isFrequencyAudioEnabled: false,
 
       isChat: false,
       isList: false,
@@ -1122,6 +1141,7 @@ export default {
     },
   },
   mounted() {
+    this.frequencyAudio = new GainPlugin(0.5);
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
     this.virtualBackground.init();
     // this.onNotification();
@@ -1349,6 +1369,7 @@ export default {
       const isVirtualBackgroundEnabled = hmsStore.getState(
         selectIsLocalVideoPluginPresent(this.virtualBackground.getName())
       );
+      this.isVirtualBackgroundEnabled = isVirtualBackgroundEnabled;
       try {
         if (!isVirtualBackgroundEnabled) {
           // Recommended value
@@ -1365,6 +1386,22 @@ export default {
         this.isVirtualBackgroundEnabled = !isVirtualBackgroundEnabled;
       } catch (error) {
         console.log("failed to set virtual background -", error);
+      }
+    },
+    async toggleFA() {
+      const isFrequencyAudioEnabled = hmsStore.getState(
+        selectIsLocalAudioPluginPresent(this.frequencyAudio.getName())
+      );
+      this.isFrequencyAudioEnabled = isFrequencyAudioEnabled;
+      try {
+        if (!isFrequencyAudioEnabled) {
+          await hmsActions.addPluginToAudioTrack(this.frequencyAudio);
+        } else {
+          await hmsActions.removePluginFromAudioTrack(this.frequencyAudio);
+        }
+        this.isFrequencyAudioEnabled = !isFrequencyAudioEnabled;
+      } catch (error) {
+        console.log("failed to set frequency audio -", error);
       }
     },
     async onChangeName() {
