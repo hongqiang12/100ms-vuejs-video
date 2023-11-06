@@ -45,7 +45,7 @@ export default {
   },
 
   router: {
-    base: '/nuxt-blog'
+    base: '/100ms-vuejs-video'
   },
   generate: {
     dir: "docs",
