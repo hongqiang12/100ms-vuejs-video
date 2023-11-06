@@ -1757,8 +1757,8 @@ export default {
       console.log(value)
       // this.pdfFile = null;
       this.pdfVisible = false;
-      const { iframeRef, startPDFShare, stopPDFShare, isPDFSharingInProgress } =
-        usePDFShare();
+      // const { iframeRef, startPDFShare, stopPDFShare, isPDFSharingInProgress } =
+      //   usePDFShare();
       //   this.iframeRef = iframeRef;
         console.log(iframeRef);
     },
