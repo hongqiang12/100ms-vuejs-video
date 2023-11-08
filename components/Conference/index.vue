@@ -1188,6 +1188,7 @@ export default {
       recordPopover: false,
 
       allPeers: [],
+      videoPeers: [],
       currentPage: 1,
       pageSize: 4,
       allTotal: 0,
@@ -1291,7 +1292,7 @@ export default {
       return names[this.tabIndex];
     },
     nowPeers() {
-      return this.allPeers.slice(
+      return this.videoPeers.slice(
         this.pageSize * this.currentPage - this.pageSize,
         this.pageSize * this.currentPage
       );
@@ -1475,8 +1476,8 @@ export default {
     },
     async renderPeers(peers) {
       this.allPeers = peers;
+      this.videoPeers = peers.filter(r => r.videoTrack);
       this.allTotal = this.allPeers.length;
-      console.log(this.allPeers);
       await new Promise((resolve) => setTimeout(resolve, 300));
       this.$nextTick(() => {
         this.nowPeers.forEach((peer) => {
