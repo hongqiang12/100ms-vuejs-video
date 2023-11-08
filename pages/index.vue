@@ -51,4 +51,7 @@ export default {
     box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px inset;
     background-color: transparent;
 }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 </style>

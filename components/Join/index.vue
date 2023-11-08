@@ -50,7 +50,7 @@
               popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
               trigger="click"
             >
-              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div class="max-h-[24rem] overflow-y-auto hide-scrollbar rounded-md">
                 <div
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
                   v-for="item in microphoneList"
@@ -90,7 +90,7 @@
               popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
               trigger="click"
             >
-              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div class="max-h-[24rem] overflow-y-auto hide-scrollbar rounded-md">
                 <div
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
                   v-for="item in videoList"
@@ -217,7 +217,7 @@
         <p class="text-xl font-semibold text-[#f0f0fb] mb-8">
           {{ dialogTitle }}
         </p>
-        <div class="overflow-y h-[550px] hide-scrollbar" v-if="tabIndex == 0">
+        <div class="overflow-y-auto h-[550px] hide-scrollbar" v-if="tabIndex == 0">
           <div class="my-6 px-6">
             <video
               autoplay
@@ -235,7 +235,7 @@
               popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
               trigger="click"
             >
-              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div class="max-h-[24rem] overflow-y-auto hide-scrollbar rounded-md">
                 <div
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
                   v-for="item in videoList"
@@ -274,7 +274,7 @@
               popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
               trigger="click"
             >
-              <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+              <div class="max-h-[24rem] overflow-y-auto hide-scrollbar rounded-md">
                 <div
                   class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
                   v-for="item in microphoneList"
@@ -314,7 +314,7 @@
                 popper-class="!px-0 !bg-[#11131b] !border-0 !rounded-md overflow-hidden"
                 trigger="click"
               >
-                <div class="max-h-[24rem] overflow-y hide-scrollbar rounded-md">
+                <div class="max-h-[24rem] overflow-y-auto hide-scrollbar rounded-md">
                   <div
                     class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
                     v-for="item in speakerList"

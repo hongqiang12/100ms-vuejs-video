@@ -538,6 +538,19 @@
           </div>
         </div>
         <div
+          v-if="isVideoEnabled"
+          class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+          :class="isGrayscaleBackgroundEnabled ? 'bg-[#293042]' : ''"
+          title="Custom grayscale video plugin"
+        >
+          <div
+            class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+            @click="toggleGB"
+          >
+            <SvgGrayscale />
+          </div>
+        </div>
+        <div
           v-if="isAudioEnabled"
           class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
           :class="isFrequencyAudioEnabled ? 'bg-[#293042]' : ''"
@@ -809,7 +822,7 @@
         <p class="text-xl font-semibold text-[#f0f0fb] mb-8">
           {{ dialogTitle }}
         </p>
-        <div class="overflow-y h-[550px] hide-scrollbar" v-if="tabIndex == 0">
+        <div class="overflow-y-auto h-[550px] hide-scrollbar" v-if="tabIndex == 0">
           <div class="my-6 px-6">
             <video
               autoplay
@@ -856,7 +869,35 @@
                 ></i>
               </div>
             </el-popover>
+            <div class="flex gap-4 mt-2">
+              <div
+                v-if="isVideoEnabled"
+                class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+                :class="isVirtualBackgroundEnabled ? 'bg-[#293042]' : ''"
+              >
+                <div
+                  class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+                  @click="toggleVB"
+                >
+                  <SvgPicture />
+                </div>
+              </div>
+              <div
+                v-if="isVideoEnabled"
+                class="rounded-md border border-[#272a31] text-white flex overflow-hidden"
+                :class="isGrayscaleBackgroundEnabled ? 'bg-[#293042]' : ''"
+                title="Custom grayscale video plugin"
+              >
+                <div
+                  class="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-[#8F9099]"
+                  @click="toggleGB"
+                >
+                  <SvgGrayscale />
+                </div>
+              </div>
+            </div>
           </div>
+
           <div class="mb-6">
             <p class="text-base mb-2 text-[#f0f0fb]">Microphone</p>
             <el-popover
@@ -1139,6 +1180,7 @@
   </div>
 </template>
 <script>
+import { GrayscalePlugin } from "~/plugins/grayscale";
 import { GainPlugin } from "~/plugins/HMSAudioPlugin";
 import { PictureInPicture } from "../PIP/PIPManager";
 import { MediaSession } from "../PIP/SetupMediaSession";
@@ -1214,6 +1256,9 @@ export default {
       virtualBackground: null,
       isVirtualBackgroundEnabled: false,
       isSomeoneScreenSharing: false,
+
+      grayscaleBackground: null,
+      isGrayscaleBackgroundEnabled: false,
 
       frequencyAudio: null,
       isFrequencyAudioEnabled: false,
@@ -1299,6 +1344,7 @@ export default {
     },
   },
   mounted() {
+    this.grayscaleBackground = new GrayscalePlugin();
     this.frequencyAudio = new GainPlugin(0.5);
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
     this.virtualBackground.init();
@@ -1476,7 +1522,7 @@ export default {
     },
     async renderPeers(peers) {
       this.allPeers = peers;
-      this.videoPeers = peers.filter(r => r.videoTrack);
+      this.videoPeers = peers.filter((r) => r.videoTrack);
       this.allTotal = this.allPeers.length;
       await new Promise((resolve) => setTimeout(resolve, 300));
       this.$nextTick(() => {
@@ -1601,6 +1647,30 @@ export default {
         this.isVirtualBackgroundEnabled = !isVirtualBackgroundEnabled;
       } catch (error) {
         console.log("failed to set virtual background -", error);
+      }
+    },
+    async toggleGB() {
+      const isGrayscaleBackgroundEnabled = hmsStore.getState(
+        selectIsLocalVideoPluginPresent(this.grayscaleBackground.getName())
+      );
+      console.log(isGrayscaleBackgroundEnabled);
+      this.isGrayscaleBackgroundEnabled = isGrayscaleBackgroundEnabled;
+      try {
+        if (!isGrayscaleBackgroundEnabled) {
+          // Recommended value
+          const pluginFrameRate = 15;
+          // add virtual background
+          await hmsActions.addPluginToVideoTrack(
+            this.grayscaleBackground,
+            pluginFrameRate
+          );
+        } else {
+          // remove virtual background
+          await hmsActions.removePluginFromVideoTrack(this.grayscaleBackground);
+        }
+        this.isGrayscaleBackgroundEnabled = !isGrayscaleBackgroundEnabled;
+      } catch (error) {
+        console.log("failed to set grayscale background -", error);
       }
     },
     async toggleFA() {
