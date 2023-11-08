@@ -36,6 +36,15 @@
 
 
 /*!
+ * EventEmitter2
+ * https://github.com/hij1nx/EventEmitter2
+ *
+ * Copyright (c) 2013 hij1nx
+ * Licensed under the MIT license.
+ */
+
+
+/*!
  * Vue.js v2.7.15
  * (c) 2014-2023 Evan You
  * Released under the MIT License.
@@ -202,13 +211,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * =============================================================================
- */
-
-
-/*!
- * EventEmitter2
- * https://github.com/hij1nx/EventEmitter2
- *
- * Copyright (c) 2013 hij1nx
- * Licensed under the MIT license.
  */
