@@ -185,11 +185,11 @@
                     class="flex items-center gap-2"
                   >
                     <SvgVideo />
-                    Mute
+                    Turn off camera
                   </div>
                   <div v-else class="flex items-center gap-2">
                     <SvgUnVideo />
-                    Request Unmute
+                    Turn on camera
                   </div>
                 </div>
 
