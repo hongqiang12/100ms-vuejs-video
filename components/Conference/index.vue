@@ -82,18 +82,20 @@
         </div> -->
         <div
           ref="content"
-          class="flex-1 flex-wrap place-content-center flex items-center justify-center gap-2"
+          class="relative flex-1 flex-wrap place-content-center flex items-center justify-center gap-2"
+          v-if="!isSomeoneScreenSharing"
         >
           <div
-            v-for="peer in allPeers"
+            v-for="peer in nowPeers"
             :key="peer.id"
-            class="group relative flex-1 flex items-center justify-center bg-[#0B0E15] rounded-xl"
+            class="group relative flex-1 min-w-[300px] flex items-center justify-center bg-[#0B0E15] rounded-xl"
+            :class="nowPeers.length > 2? 'max-w-[500px]' : ''"
           >
             <video
               autoplay
               :muted="peer.isLocal"
               playsinline
-              class="object-contain flex items-center justify-center scale-x-[-1] bg-[#0B0E15] rounded-xl"
+              class="object-contain max-h-[70vh] flex items-center justify-center scale-x-[-1] bg-[#0B0E15] rounded-xl"
               :class="allPeers.length > 1 ? 'w-full' : ''"
               :ref="
                 (el) => {
@@ -264,6 +266,17 @@
             >
               <SvgRaiseHand />
             </div>
+          </div>
+          <div class="absolute bottom-5 left-0 w-full text-center" v-if="allTotal > pageSize">
+            <el-pagination
+              :pager-count="5"
+              layout="prev, pager, next"
+              :page-size="pageSize"
+              :current-page="currentPage"
+              :total="allTotal"
+              @current-change="onCurrentChange"
+            >
+            </el-pagination>
           </div>
         </div>
         <div
@@ -571,6 +584,13 @@
             </div>
           </el-popover>
         </div>
+        <!-- <div
+          class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
+          @click="onAddPeers"
+          v-loading="isAddLoading"
+        >
+          <SvgAllUser />
+        </div> -->
         <div
           class="rounded-md border border-[#272a31] text-white w-10 h-10 cursor-pointer flex items-center justify-center overflow-hidden hover:bg-[#8F9099]"
           :class="isHandRaised ? 'bg-[#293042]' : ''"
@@ -1127,9 +1147,8 @@ import {
   selectIsLocalAudioPluginPresent,
   selectAppData,
 } from "@100mslive/hms-video-store";
-import { selectTracksMap, usePDFShare } from "@100mslive/react-sdk";
+// import { selectTracksMap, usePDFShare } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
-import { watch } from "vue";
 export default {
   data() {
     return {
@@ -1138,6 +1157,9 @@ export default {
       recordPopover: false,
 
       allPeers: [],
+      currentPage: 1,
+      pageSize: 4,
+      allTotal: 0,
       videoRefs: {},
       remotePeerProps: {},
       isAudioEnabled: hmsStore.getState(selectIsLocalAudioEnabled),
@@ -1197,6 +1219,8 @@ export default {
 
       isHandRaised: false,
 
+      isAddLoading: false,
+
       // pdf sharing
       pdfVisible: false,
       pdfFile: null,
@@ -1232,6 +1256,12 @@ export default {
     dialogTitle() {
       const names = ["Device Settings", "Notifications", "Layout"];
       return names[this.tabIndex];
+    },
+    nowPeers() {
+      return this.allPeers.slice(
+        this.pageSize * this.currentPage - this.pageSize,
+        this.pageSize * this.currentPage
+      );
     },
   },
   mounted() {
@@ -1354,12 +1384,61 @@ export default {
       // rendering again is required for the local video to show after turning off
       // this.renderPeers(hmsStore.getState(selectPeers));
     },
+    onCurrentChange(value) {
+      this.currentPage = value;
+      this.$nextTick(() => {
+        this.nowPeers.forEach((peer) => {
+          if (this.videoRefs[peer.id]) {
+            hmsActions.attachVideo(peer.videoTrack, this.videoRefs[peer.id]);
+
+            // If the peer is a remote peer, attach a listener to get video and audio states
+            if (!peer.isLocal) {
+              // Set up a property to track the audio and video states of remote peer so that
+              if (!this.remotePeerProps[peer.id]) {
+                this.remotePeerProps[peer.id] = {};
+              }
+              this.remotePeerProps[peer.id][this.MediaState.isAudioEnabled] =
+                hmsStore.getState(selectIsPeerAudioEnabled(peer.id));
+              this.remotePeerProps[peer.id][this.MediaState.isVideoEnabled] =
+                hmsStore.getState(selectIsPeerVideoEnabled(peer.id));
+              // this.remotePeerProps[peer.id][this.MediaState.audioLevel] = 0;
+              // Subscribe to the audio and video changes of the remote peer
+              hmsStore.subscribe(
+                (isEnabled) => this.onPeerAudioChange(isEnabled, peer.id),
+                selectIsPeerAudioEnabled(peer.id)
+              );
+              hmsStore.subscribe(
+                (isEnabled) => this.onPeerVideoChange(isEnabled, peer.id),
+                selectIsPeerVideoEnabled(peer.id)
+              );
+            }
+
+            if (peer.isLocal) {
+              this.name = peer.name;
+            }
+
+            this.$set(this.volumeObj, peer.id, 100);
+            this.$set(this.audioLevelObj, peer.id, 0);
+            hmsStore.subscribe(
+              (audioLevel) => this.onPeerAudioLevelChange(audioLevel, peer.id),
+              selectPeerAudioByID(peer.id)
+            );
+            hmsStore.subscribe(
+              (connectionQuality) =>
+                this.onChangeConnectionQuality(connectionQuality, peer.id),
+              selectConnectionQualityByPeerID(peer.id)
+            );
+          }
+        });
+        this.getDevices();
+      });
+    },
     async renderPeers(peers) {
       this.allPeers = peers;
+      this.allTotal = this.allPeers.length;
       await new Promise((resolve) => setTimeout(resolve, 300));
-      console.log(peers);
       this.$nextTick(() => {
-        this.allPeers.forEach((peer) => {
+        this.nowPeers.forEach((peer) => {
           if (this.videoRefs[peer.id]) {
             hmsActions.attachVideo(peer.videoTrack, this.videoRefs[peer.id]);
 
@@ -1738,7 +1817,28 @@ export default {
       hmsActions.setVolume(value, this.peer.audioTrack);
     },
     onJSONParse(string) {
-      return JSON.parse(string) || {};
+      return (string && JSON.parse(string)) || {};
+    },
+
+    async onAddPeers() {
+      this.isAddLoading = true;
+      const authToken = await this.getAuthTokenByRoomCode("cmk-ieal-qoe");
+      for (let i = 0; i < 10; i++) {
+        const config = {
+          userName: "peer" + (this.allTotal + i),
+          authToken: authToken,
+          settings: {
+            // initial states
+            isAudioMuted: true,
+            isVideoMuted: true,
+          },
+        };
+        await hmsActions.join(config);
+      }
+      this.isAddLoading = false;
+    },
+    async getAuthTokenByRoomCode(roomCode) {
+      return await hmsActions.getAuthTokenByRoomCode({ roomCode });
     },
 
     // pdf sharing
@@ -1751,21 +1851,32 @@ export default {
       this.pdfFile = file;
       // hmsActions.setAppData("pdfConfig", file);
     },
-    onShare() {
-      hmsActions.setAppData("pdfConfig", this.pdfFile);
-      const value = hmsStore.getState(selectAppData("pdfConfig"))
-      console.log(value)
+    async onShare() {
+      // hmsActions.setAppData("pdfConfig", this.pdfFile);
+      // console.log(APP_DATA.pdfConfig)
+      // console.log(useSetAppDataByKey(APP_DATA.pdfConfig))
+      // const [, setPDFConfig] = useSetAppDataByKey(APP_DATA.pdfConfig);
+      // console.log(setPDFConfig)
+      // setPDFConfig(this.pdfFile);
+      // const value = hmsStore.getState(selectAppData("pdfConfig"))
+      // console.log(value)
       // this.pdfFile = null;
       this.pdfVisible = false;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // const pdfConfig = useHMSStore(selectAppData(APP_DATA.pdfConfig));
+      // console.log(pdfConfig)
+      // const resetConfig = useResetPDFConfig();
+      // const { iframeRef, startPDFShare, isPDFShareInProgress } = usePDFShare(resetConfig);
       // const { iframeRef, startPDFShare, stopPDFShare, isPDFSharingInProgress } =
       //   usePDFShare();
       //   this.iframeRef = iframeRef;
-        console.log(iframeRef);
+      // console.log(iframeRef);
     },
-    resetConfig() {
-      const value = hmsStore.getState(selectAppData("pdfConfig"))
-      hmsActions.setAppData("pdfConfig", value);
-    },
+    // resetConfig() {
+
+    //   hmsActions.setAppData("pdfConfig", value);
+    // },
   },
 };
 </script>
@@ -1782,5 +1893,11 @@ export default {
 }
 :deep(.el-switch.is-checked .el-switch__core) {
   border-color: #2572ed !important;
+}
+:deep(.el-pagination button) {
+  background: transparent !important;
+}
+:deep(.el-pager li) {
+  background: transparent !important;
 }
 </style>
