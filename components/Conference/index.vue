@@ -89,7 +89,7 @@
             v-for="peer in nowPeers"
             :key="peer.id"
             class="group relative flex-1 min-w-[300px] flex items-center justify-center bg-[#0B0E15] rounded-xl"
-            :class="nowPeers.length > 2? 'max-w-[500px]' : ''"
+            :class="nowPeers.length > 2 ? 'max-w-[500px]' : ''"
           >
             <video
               autoplay
@@ -267,7 +267,10 @@
               <SvgRaiseHand />
             </div>
           </div>
-          <div class="absolute bottom-5 left-0 w-full text-center" v-if="allTotal > pageSize">
+          <div
+            class="absolute bottom-5 left-0 w-full text-center"
+            v-if="allTotal > pageSize"
+          >
             <el-pagination
               :pager-count="5"
               layout="prev, pager, next"
@@ -402,6 +405,33 @@
                 >
                   <SvgUserClose class="scale-80" />
                 </div>
+                <el-popover
+                  v-if="!peer.isLocal"
+                  width="256"
+                  :visible-arrow="false"
+                  popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
+                  trigger="click"
+                >
+                  <div
+                    class="max-h-[24rem] overflow-y hide-scrollbar rounded-md border border-[#1D1F27]"
+                  >
+                    <div
+                      class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 border-t border-[#1D1F27] first:border-transparent hover:bg-[#272932] cursor-pointer"
+                      v-for="item in roleNameList"
+                      :key="item"
+                      :class="peer.roleName == item ? 'bg-[#272932]' : ''"
+                      @click="onChangeRoleOfPeer(peer.id, item)"
+                    >
+                      {{ item }}
+                    </div>
+                  </div>
+                  <div
+                    slot="reference"
+                    class="w-7 h-7 flex items-center justify-center text-white cursor-pointer rounded hover:bg-[#8F9099]"
+                  >
+                    <i class="el-icon-more rotate-90 text-xl"></i>
+                  </div>
+                </el-popover>
               </div>
             </div>
           </div>
@@ -647,7 +677,7 @@
           popper-class="!p-0 !border-0 !rounded-md overflow-hidden !bg-transparent"
           trigger="click"
         >
-          <div class="rounded-md bg-[#11131b]">
+          <div class="rounded-md bg-[#11131b] border border-[#1D1F27]">
             <div
               @click="onBRB"
               class="bg-[#11131b] font-semibold text-[#f0f0fb] text-sm p-4 flex items-center justify-between first:border-transparent hover:bg-[#272932] cursor-pointer"
@@ -1146,6 +1176,7 @@ import {
   selectConnectionQualityByPeerID,
   selectIsLocalAudioPluginPresent,
   selectAppData,
+  selectAvailableRoleNames,
 } from "@100mslive/hms-video-store";
 // import { selectTracksMap, usePDFShare } from "@100mslive/react-sdk";
 import { hmsActions, hmsStore, hmsNotifications } from "~/utils";
@@ -1194,6 +1225,8 @@ export default {
 
       nameVisible: false,
       name: "",
+
+      roleNameList: [],
 
       videoList: [],
       microphoneList: [],
@@ -1279,6 +1312,7 @@ export default {
     hmsStore.subscribe(this.renderMessages, selectHMSMessages); // get all messages
     hmsStore.subscribe(this.updateHLSState, selectHLSState);
     hmsStore.subscribe(this.recordingState, selectRecordingState);
+    hmsStore.subscribe(this.onRoleNamesChange, selectAvailableRoleNames);
     // this.onResize();
     // window.addEventListener("resize", this.onResize);
     document.addEventListener("fullscreenchange", this.onFullscreenchange);
@@ -1298,6 +1332,12 @@ export default {
         width: Dom.width,
         height: Dom.height,
       };
+    },
+    onRoleNamesChange(roleNameList) {
+      this.roleNameList = roleNameList.slice(1);
+    },
+    async onChangeRoleOfPeer(forPeerId, toRoleName) {
+      hmsActions.changeRoleOfPeer(forPeerId, toRoleName, true);
     },
     renderMessages(messages) {
       if (!this.isChat) return;
@@ -1436,6 +1476,7 @@ export default {
     async renderPeers(peers) {
       this.allPeers = peers;
       this.allTotal = this.allPeers.length;
+      console.log(this.allPeers);
       await new Promise((resolve) => setTimeout(resolve, 300));
       this.$nextTick(() => {
         this.nowPeers.forEach((peer) => {

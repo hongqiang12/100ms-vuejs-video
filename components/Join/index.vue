@@ -560,7 +560,6 @@ export default {
   },
   mounted() {
     this.onInit();
-    // console.log(HMSNotificationTypes);
     this.onNotification();
     this.grayscaleBackground = new GrayscalePlugin();
     this.virtualBackground = new HMSVirtualBackgroundPlugin("blur");
